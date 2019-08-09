@@ -16,12 +16,17 @@
     <!-- <el-button id='play' @click="getUrlplay">异步播放</el-button> -->
   </div>
 </template>
+
 <script>
+/* 
+<script src="./video/video.js?v=fc5104a2ab23"></script>
+<script src="./video/videojs-contrib-hls.js?v=c726b94b9923"></script> 
+*/
 import axios from "axios";
 import $ from "jquery";
 
-import videojs from 'video.js';
-import "videojs-contrib-hls";
+/* import videojs from 'video.js';
+import "videojs-contrib-hls"; */
 
 /* api */
 import { liveUrl, liveUrlCheck ,liveUrl3} from "../interface/live";
@@ -34,10 +39,10 @@ export default {
 	};
   },
   mounted() {
-    this.Initvide("roomVideo");
+    //this.Initvide("roomVideo");
     var path = this.$route.path;
     ResourcesId = path.split("/").pop();
-	  //this.live_Verification();
+	this.live_Verification();
 	  //this.live_Url();
   },
   methods: {
