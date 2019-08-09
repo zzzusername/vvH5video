@@ -1,21 +1,19 @@
-# zst_webplatform
+# videojs-hls
+videojs支持hls直播实例
+ 包含功能
+ 1. 视频播放前的高斯模糊poster
+ 2. 直播视频中断一定时间后提示用户刷新等操作
+ 3. 视频卡住3s后不断重新尝试拉取直播流
 
-> A Vue.js project
 
-## Build Setup
 
-``` bash
-# install dependencies
-npm install
+### PS : 
+ 微信中的自动开播需要等到wx jssdk接口加载完毕后
 
-# serve with hot reload at localhost:8080
-npm run dev
+    wx.ready(function(){
+            myPlayer.play();
+           })
 
-# build for production with minification
-npm run build
+详见 [我的博客](http://www.cnblogs.com/saysmy/p/6422678.html"微信中直播视频自动播放")
 
-# build for production and view the bundle analyzer report
-npm run build --report
-```
-
-For a detailed explanation on how things work, check out the [guide](http://vuejs-templates.github.io/webpack/) and [docs for vue-loader](http://vuejs.github.io/vue-loader).
+参考[实例演示](https://videojs.github.io/videojs-contrib-hls/) 
