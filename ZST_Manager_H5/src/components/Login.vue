@@ -123,7 +123,6 @@ import {
   Postuserlogin2,
   getinit
 } from "@/components/interface/common.js";
-import crypto from "crypto";
 
 var Codenumder = 1;
 var countdown = 250;
@@ -296,13 +295,13 @@ export default {
     userlogin() {
       let _this = this;
       let URL = ServerUrl;
-      
+
       //console.log(this.radio)
 
       if (this.radio.enterprise_name === "超级管理员" && this.radio.user_role==="ROLE_SYS_SUPER_ADMIN") {
-     
+
         var login = $(".username").val();
-        
+
         var code = $(".ValidateNum").val();
         let userparameter = {
           account: login,
@@ -361,7 +360,7 @@ export default {
         Postuserlogin2(userparameter).then(res => {
 					  if (res.status === 200 && res.data.result == "ok") {
               var personparse = res.data.data;
-              
+
               console.log(personparse);
 
 //              console.log(personparse);
@@ -390,7 +389,7 @@ export default {
               localStorage.setItem("UserCode", personparse.user.region_code);
               // 是否为地区管理员
               localStorage.setItem("isDistrictadmin", personparse.user.is_district_admin);
-              
+
 
 
               _this.$router.push({
@@ -456,7 +455,7 @@ export default {
         });
     },
 
- 
+
     handleClose(done) {
       this.fullscreenLoading = false;
       this.$router.push({
@@ -597,27 +596,6 @@ export default {
         ctx.fillText(a, 0, 100);
       }
     },
-
-    //      fetchData() {
-    //        //var personparse = JSON.parse(localStorage.person)
-    //        let _this = this;
-    //        var date = {
-    //          "ClientKey": localStorage.clientKey,
-    //          "Token": localStorage.token,
-    //        }
-    //        // console.log(date);
-    //        this.myserver.getMenuModel(date).then(function (res) {
-    //          var response = res.data;
-    //          // console.log('登录时的导航');
-    //          // console.log(res);
-    //          window.navigationbar = response.data.items
-    //          //          localStorage.setItem("Myitems",JSON.stringify( response.data.items));
-    //          _this.items = response.data.items;
-    //
-    //        }).catch(function (error) {
-    //
-    //        });
-    //      },
 
     openFullScreen() {
       this.fullscreenLoading = true;

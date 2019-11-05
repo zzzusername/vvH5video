@@ -19,7 +19,7 @@
                     <div class="passBox">
                             <div class="checkBox">
                                 <el-checkbox v-model="checked" @change="SavePassword">记住密码</el-checkbox>
-                            </div>  
+                            </div>
                             <span class="forget"><a href="javascripg:;">忘记密码?</a></span>
                     </div>
                     <div class="submit">
@@ -147,7 +147,7 @@ import $ from 'jquery'
                     //     }
                     // });
                 }
-                
+
             },
             goHome(){ //登陆跳转
                 this.$router.push({
@@ -201,7 +201,6 @@ import $ from 'jquery'
             width: 100%;
             height: 68.51%;
             overflow: hidden;
-            background: url(../../assets/logoBG2.png) no-repeat;
             background-size: cover;
             .login {
                 width: 330px;
@@ -427,7 +426,7 @@ import $ from 'jquery'
                     width: 246px;
                     height: 268px;
                     padding: 0px 38px 0;
-                    margin: 9% 0px 0px 54.32%; 
+                    margin: 9% 0px 0px 54.32%;
                     .userName {
                         margin: 6px 0px 28px;
                     }

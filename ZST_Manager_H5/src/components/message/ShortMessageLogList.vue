@@ -129,7 +129,7 @@
 				}).then(function(res) {
 					console.log(res)
 					_this.reLogin(res.data.code);//提示帐号登陆
-					
+
 					if(res.data.code == 0) {
 						loading.close();
 						let response = res.data.data;
@@ -186,7 +186,7 @@
 					let totalall = res.data.totalDataCount;
 					_this.total = totalall;
 					console.log(res.data);
-					
+
 					if(res.data.code === 0) {
 						_this.$message({
 							message: '全部数据',
@@ -237,7 +237,7 @@
 						let totalall = res.data.totalDataCount;
 						_this.total = totalall;
 						console.log(res.data)
-						
+
 						if(res.data.code === 0) {
 							_this.$message({
 								message: '查询成功',
@@ -295,7 +295,7 @@
 	.scrollbox {
 		width: 1564px;
 	}
-	
+
 	@media screen and (max-width: 1440px) {
 		.scrollbox {
 			width: 1400px;
@@ -307,14 +307,14 @@
 			overflow: hidden;
 		}
 	}
-	
+
 	.mRightTwo {
 		padding: 34px 42px;
 		margin: 15px 27px 15px 15px;
 		background: #354166;
 		box-shadow: 0px 0px 26px #01060e;
 	}
-	
+
 	.zForm span {
 		float: left;
 		color: #eee;
@@ -323,19 +323,19 @@
 		overflow: hidden;
 		line-height: 36px;
 	}
-	
+
 	.zTable {
 		clear: both;
 		height: 94%;
 		overflow-x: auto;
 		padding-top: 26px;
 	}
-	
+
 	.elTable {
 		height: 91.7%;
 		overflow: hidden;
 	}
-	
+
 	.zInput {
 		float: left;
 		width: 120px;
@@ -348,7 +348,7 @@
 		background: #2a3558;
 		border: 1px #3b4872 solid;
 	}
-	
+
 	.zForm button {
 		float: left;
 		color: #eee;
@@ -361,12 +361,12 @@
 		background: #1b274c;
 		border: 1px #3b4872 solid;
 	}
-	
+
 	.zSelect {
 		float: left;
 		width: 148px;
 	}
-	
+
 	.zForm span.btnRight {
 		float: right;
 		display: inline-block;

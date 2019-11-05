@@ -7,7 +7,7 @@ class All {
   static postSwagger(swagger,param) {
     //登录接口post
     return axios.post(URL + swagger, param, {
- 
+
     });
   }
 
