@@ -243,6 +243,8 @@ margin-top: 5px;
   margin: 0 auto;
   overflow: hidden;
   font-family: "微软雅黑", arial;
+  background: #232a44 url(../../src/assets/bodybg.png) no-repeat right top;
+  background-size: cover;
 }
 
 .head {
