@@ -28,11 +28,6 @@ module.exports = {
       'excel': path.resolve(__dirname, '/src/excel'),
     }
   },
-  externals: {
-    'vue': 'Vue',
-    'vue-router': 'VueRouter',
-    'element-ui': 'ELEMENT',
-  },
   module: {
     rules: [{
       test: /\.vue$/,
