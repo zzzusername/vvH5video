@@ -1,0 +1,335 @@
+<template>
+	<el-dialog  title="权限分配" 
+		:visible.sync="assignPopchild"
+		:before-close="cancelNewdata"
+		:close-on-click-modal='false'
+		width="50%">
+		<el-form  ref="edit" label-width="40%" class="demo-ruleForm">
+			{{gainFromparentData}}
+			<div class="formTable">
+				<div class="block block-line">
+					<el-form-item label="姓名：" :rules="[{ required: true, message: ' '}]">
+						<el-input v-model="gainFromparentData.realname" maxlength="50"></el-input>
+					</el-form-item>
+				</div>  
+				<div class="block block-line">
+					<el-form-item label="用户类型：" :rules="[{ required: true, message: ' '}]">
+						<el-select v-model="prisegRoupsvalue"  placeholder="--请选择--">
+							<el-option v-for="item in prisegRoupsdata" 
+							:key="item.index" :label="item.name" :value="item.type"></el-option>
+						</el-select>
+					</el-form-item>
+				</div>
+				<div class="block block-line">
+					<el-form-item label="权限分配方式：" :rules="[{ required: true, message: ' '}]">
+						
+						<div class="checkboxBg">
+							<el-radio-group v-model="addForm.permissionAllocationmode" @change="permissionModechange">
+								<el-radio label="1">权限分组</el-radio>
+								<el-radio label="2">直接分配</el-radio>
+							</el-radio-group>
+						</div>
+					</el-form-item>
+				</div>
+				<div class="block block-line">
+					<el-form-item label="权限分组：" :rules="[{ required: true, message: ' '}]">
+						<el-select v-model="rightsGroupvalue"  placeholder="--请选择--">
+							<el-option v-for="item in rightsGroupdata" 
+							:key="item.index" :label="item.name" :value="item.type"></el-option>
+						</el-select>
+					</el-form-item>
+				</div>
+				<div class="block" id="streamingMedia">
+					<el-form-item label="指定流媒体服务器：" label-width="20%" :rules="[{ required: true, message: ' '}]">
+						<el-select v-model="streamingMediavalue"
+								placeholder="请选择" class="tabSelect" 
+								multiple
+								@change="streamingMediachange" 
+								>
+								<el-option
+								v-for="item in streamingMediadata"
+								:key="item.server_code"
+								:label="item.server_name"
+								:value="item.server_code"
+								>
+								</el-option>
+						</el-select>
+					</el-form-item>
+				</div>
+				<div id="tabChagecont"
+					v-loading="tabLoading"
+					element-loading-text="加载中"
+					element-loading-spinner="el-icon-loading"
+					element-loading-background="initial"
+					style="overflow:hidden;"
+					v-if="allocationType"
+					>
+					<!-- 监控 ／ 终端 tab切换-->
+					<el-tabs v-model="activeName" 
+						type="border-card" 
+						style="padding:0 10px;">
+						<el-tab-pane label="功能分配：" name="first"  class="tabSelectpane">
+							<el-checkbox-group v-model="permissionsListvalue">
+								<el-checkbox 
+								v-for="item in permissionsList" :key="item.index"
+								:label="item.name"
+								>{{item.comment}}</el-checkbox>
+							</el-checkbox-group>
+						</el-tab-pane>
+						<el-tab-pane label="监控资源分配：" name="second"  class="tabSelectpane">
+							<div class="tabCont">
+								<div class="hd monitorResourceshd">
+									<span>监控地址：</span>
+									<el-select v-model="monitorTheaddressValue"  placeholder="--请选择--" class="monitorResourcesSelect" @change='monitorAddresschange'>
+										<el-option v-for="item in monitorTheaddressData" 
+										:key="item.index" :label="item.name" :value="item.value"></el-option>
+									</el-select>
+								</div>
+								<div class="bd">
+									<div class="hd-l">
+										<el-tree
+										:props="props"
+										:data="monitor_resource_organizations"
+										ref="monitorTree"
+										node-key="unique_code"
+										show-checkbox>
+										</el-tree>
+									</div>
+								</div>
+							</div>
+						</el-tab-pane>
+						<el-tab-pane label="终端通讯录分配：" name="three"  class="tabSelectpane">
+							<div class="tabCont">
+								<h1>111</h1>
+							</div>
+						</el-tab-pane>
+					</el-tabs>
+				</div>
+			</div>
+			<div class="userBtn">
+				<el-form-item>
+					<el-button type="primary" @click="childSavedata">保存</el-button>
+					<el-button @click="cancelNewdata()">取消</el-button>
+				</el-form-item>
+			</div>
+		</el-form>
+	</el-dialog>
+</template>
+<script>  
+import {listAllocablefunctions} from '../api/authority'
+export default {
+	props : {
+		assignPopchild : Boolean,
+		assignPopeditData : Object,
+	},
+  	data: function() {
+		return {
+			// 来源父组件编辑数据
+			gainFromparentData : this.assignPopeditData,
+			props: {
+				label: 'name',
+				children: 'children',
+			},
+			tabLoading : false,
+			// tab 是否可编辑
+			allocationType : false,
+			// tab 切换
+			activeName: "first",
+			// 编辑数据集合
+			addForm : {
+				realname : '姓名',
+				permissionAllocationmode : '1',
+			},
+			// 用户类型
+			prisegRoupsdata : [
+				{	
+					name: "普通用户",
+					type : 'AVERAGE',
+				},
+				{	
+					name: "地区管理员",
+					type : 'REGIONAL',
+				},
+				{	
+					name: "超级管理员",
+					type : 'SUPER',
+				},
+			],
+			prisegRoupsvalue : 'AVERAGE',
+			// 权限分组
+			rightsGroupdata : [
+				{	
+					name: "权限组1",
+					type : '1',
+				},
+				{	
+					name: "权限组2",
+					type : '2',
+				},
+			],
+			rightsGroupvalue : '',
+			permissionsList : [],
+			permissionsListvalue : [],
+			// 流媒体 服务器
+			streamingMediadata : [
+				{
+					server_code: "11135436292046327808",
+					server_name: "流媒体服务器1"
+				},
+				{
+					server_code: "11135436292046327809",
+					server_name: "流媒体服务器2"
+				}
+			],
+			streamingMediavalue: [],
+			// 监控地址
+			monitorTheaddressData : [
+				{
+					name : 'IP地址1-天津',
+					value : '1'
+				},
+				{
+					name : 'IP地址2-北京',
+					value : '2'
+				},
+			],
+			monitorTheaddressValue : '1',
+			monitorTheaddressValueCopy : '1',
+			monitor_resource_organizations : [
+				{
+					area_code: "13",
+					fault_count: 0,
+					health_count: 0,
+					name: "天津",
+					online_count: 0,
+					parent_code: "0",
+					platform_id: 1,
+					secrecy_count: 0,
+					security: false,
+					total_count: 7,
+					unique_code: "13_1",
+				}
+			],
+			terminal_regions : [
+				{
+				id: "a07a123c-8f24-4329-9100-3f26cd899819",
+				region_code: "220600000000",
+				region_full_code: "|220000000000|220600000000|",
+				region_full_name: "|吉林省|白山市|",
+				region_name: "白山市",
+				unique_code: "220600000000"
+				}
+			],
+		};
+	},
+	mounted : function(){
+		console.log('获取分配权限相应数据');
+		// 初始化本企业可以分配的 权限数据
+		this.getInitpermissionsdata();
+	},
+	methods:{
+		// 初始化权限数据
+		getInitpermissionsdata(){
+			// 查询接口
+			listAllocablefunctions({  "enterprise_id": localStorage.EnterpriseId}).then(res => {
+				if (res.status === 200 && res.data.result == "ok") {
+					this.permissionsList = res.data.data;
+				}else{
+					// 错误提示信息
+					this.$message.error(res.data.error_description);
+				}
+			});	
+		},
+		// 分配方式change
+		permissionModechange(value){
+			console.log(value)
+			if(value == '2'){
+				// 状态为直接分配
+				this.allocationType = true;
+			}else{
+				this.allocationType = false;
+			}
+		},
+		// 监控地址 change
+		monitorAddresschange(value){
+			let code = this.monitorTheaddressValueCopy;
+			//this.$message
+			let _value = value;
+			// 是否要切换 服务器地址
+			this.$confirm('是否要切换监控地址', '提示', {
+			confirmButtonText: '确定',
+			cancelButtonText: '取消',
+			type: 'warning'
+			}).then(() => {
+				this.makeSurechangemoitorAddress(_value);
+				this.monitorTheaddressValueCopy = value;
+			}).catch(() => {
+				this.$message({
+					type: 'info',
+					message: '已取消切换'
+				});
+				this.monitorTheaddressValue = code;
+
+			});
+		},
+		// 确定切换服务器地址
+		makeSurechangemoitorAddress(value){
+			// ajax 读取 根节点数据 
+			if(value == '1'){
+				this.monitor_resource_organizations = [
+					{
+						area_code: "13",
+						fault_count: 0,
+						health_count: 0,
+						name: "天津",
+						online_count: 0,
+						parent_code: "0",
+						platform_id: 1,
+						secrecy_count: 0,
+						security: false,
+						total_count: 7,
+						unique_code: "13_3",
+					}
+				]
+			}else if(value == '2'){
+				this.monitor_resource_organizations = [
+					{
+						area_code: "13",
+						fault_count: 0,
+						health_count: 0,
+						name: "北京",
+						online_count: 0,
+						parent_code: "0",
+						platform_id: 1,
+						secrecy_count: 0,
+						security: false,
+						total_count: 7,
+						unique_code: "13_4",
+					}
+				]
+			}
+		},
+		// 流媒体服务器
+		streamingMediachange(code){
+			console.log(code);
+		},
+		// 保存
+		childSavedata(){
+			// 根据页面来源 直接访问接口
+			// type  userceck / userlist
+			console.log('保存按钮');
+
+		},
+		// 关闭弹窗
+		cancelNewdata(){
+			console.log('关闭弹窗');
+			this.$emit('assignPopclose',false);
+		},
+	},
+	watch:{
+		assignPopeditData:function(newVal,oldVal){
+			this.gainFromparentData = newVal;
+		}
+	}
+};
+</script>

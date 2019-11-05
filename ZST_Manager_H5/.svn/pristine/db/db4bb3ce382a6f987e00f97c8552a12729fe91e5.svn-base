@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1.0">
+	<title>掌上通管理平台</title>
+	<link rel="icon" href="favicon.ico" type="image/x-icon">
+	<script>
+
+		// localStorage.removeItem('Accesstoken');
+		/* window.onpagehide = function(){
+			console.log('刷新浏览器')
+			//localStorage.removeItem('Accesstoken');
+		}; */
+		window.onunload = function(){
+			localStorage.setItem('lastestLeaveTime', new Date().getTime());
+		};
+
+		const MAX_WAIT_TIME = 5;
+		const currentDate = new Date().getTime();
+		const lastestLeaveTime = parseInt(window.localStorage.getItem('lastestLeaveTime'), 10) || currentDate;
+		let secondCounter = Math.max(MAX_WAIT_TIME - Math.ceil((currentDate - lastestLeaveTime) / 1000), 0);
+
+		/* console.log(currentDate)
+		console.log(lastestLeaveTime)
+		console.log(secondCounter) */
+		let videoUrl = window.location.href
+		let isVideo = videoUrl.indexOf("Video") != -1;
+		console.log(isVideo);
+
+		if (secondCounter > 0) {
+			// 刷新
+			localStorage.setItem('lastestLeaveTime', new Date().getTime());
+		} else {
+			// 关闭
+			console.log('清除token');
+			// 可以双开页面的 Name
+			if(isVideo){
+				console.log('视频页面')
+			}else{
+				localStorage.removeItem('Accesstoken');
+			}
+		}
+		
+
+		// ip + cookie 
+		var url = unescape(window.location.href)
+		//var url = 'http://dev.uvq.cc/ucsys/static/admin/index.html?api_base_url=http://dev.uvq.cc/ucsys';
+
+		var querys = url.substring(url.indexOf('?') + 1).split('&')
+
+		var result = [];
+		for (var i = 0; i < querys.length; i++) {
+			var temp = querys[i].split('=');
+			if (temp.length < 2) {
+				result[temp[0]] = '';
+			} else {
+				result[temp[0]] = temp[1];
+			}
+		}
+
+		var getServerurl = result['api_base_url']
+
+		var urlApi = ''
+		if( getServerurl != undefined){
+			// 有数据  存入 cookie 赋值 api 
+			urlApi = getServerurl.split('#/')[0];
+			setCookie('apiUrl', getServerurl)
+		}else{
+			// 没有 api 地址  取 cookie 赋值 api
+			urlApi = getCookie('apiUrl')
+		}
+		
+		console.log(urlApi)
+
+	
+
+		window.version = "1.0.0.0";///我是版本号
+		var Version = version;
+		window.ServerUrl = urlApi;
+		window.navigationbar = [];
+		window.IsTips = false
+		window.code = 999004
+		window.companyName = " ©2019视联动力信息技术股份有限公司"
+		window.phone = "^((1[0-9]{1})+\\d{9})$"
+
+		// /index.html?context_path=/ucsys
+		// 存
+		function setCookie(name, value) {
+			var Days = 30;
+			var exp = new Date();
+			exp.setTime(exp.getTime() + Days * 24 * 60 * 60 * 1000);
+			document.cookie = name + "=" + escape(value) + ";expires=" + exp.toGMTString();
+		}
+		// 取
+		function getCookie(name) {
+			var arr, reg = new RegExp("(^| )" + name + "=([^;]*)(;|$)");
+
+			if (arr = document.cookie.match(reg))
+
+				return unescape(arr[2]);
+			else
+				return null;
+		}
+
+	</script>
+</head>
+
+<body>
+	<div id="app"></div>
+	<!-- built files will be auto injected -->
+</body>
+<script>
+	var app = document.getElementById("app")
+
+</script>
+
+</html>
+<!-- 1.0.0.x -->

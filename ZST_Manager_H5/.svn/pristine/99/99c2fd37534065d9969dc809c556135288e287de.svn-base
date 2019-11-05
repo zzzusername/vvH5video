@@ -1,0 +1,434 @@
+<template>
+  <div class="content" id="cont">
+    <div class="app-cent">
+      <div class="hd">
+        <span>新增工作单位</span>
+        <span class="btnRight">
+          <button class="Zbtn btn-rt" @click="addRoordata">新增工作单位</button>
+        </span>
+      </div>
+      <div class="bd">
+          <div class="tree">
+            <div class="title">
+              <span>工作单位名称</span>
+              <span class="tit-rt">操作</span>
+            </div>
+            <el-tree
+              :data="treeData"
+              :props="defaultProps"
+              node-key="id"
+              :expand-on-click-node="false"
+              :render-content="renderContent"
+            ></el-tree>
+          </div>
+      </div>
+    </div>
+    <div class="btnRight">
+      <button class="Zbtn btn-submit"  @click="saveTreedata">保存并继续</button>
+    </div>
+    <!-- 新增／编辑 -->
+    <div id="commonPop">
+      <el-dialog
+          class="permissionForm"
+          :title="editEnterpriseTit"
+          :visible.sync="editEnterprise"
+          :before-close="closePermission"
+          :close-on-click-modal='false'
+          width="40%"
+          >
+          <el-form ref="workUnitdata" :model="workUnitdata" label-width="120px">
+            <div class="formTable" style="margin:0; overflow:initial;">
+              <div class="block">
+                <el-select v-model="WorkunitTypevalue" placeholder="请选择">
+                  <el-option
+                  v-for="item in WorkunitType"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value">
+                  </el-option>
+                </el-select>
+              </div>
+              <div class="block">
+                <el-form-item label="单位名称：" :rules="[{ required: true, message: ' '}]"  prop="">
+                  <el-input v-model="workUnitdata.name" maxlength="50"></el-input>
+                </el-form-item>
+              </div>
+              <div id="areaSelectpopover" v-show="this.WorkunitTypevalue == '1'">
+                <el-form-item label="地区：" :rules="[{ required: true, message: ' '}]"  prop="">
+                  <el-input 
+                    v-model="workUnitdata.region_full_name" 
+                    maxlength="50"
+                    @focus="isShowregionFulldata = true"
+                  ></el-input>
+                  <div class="treeCont" v-if="isShowregionFulldata">
+                    <el-tree
+                      :props="props"
+                      :load="regionFulltree"
+                      lazy
+                      accordion
+                      v-if="isShowregionFulldata"
+                      @current-change="synchronouRegionsdata" 
+                    >
+                    </el-tree>
+                  </div>
+                  <span class="close"  v-if="isShowregionFulldata" @click="closeShowregionFulldata">
+                    <img src="../../../assets/close.png" alt="close">
+                  </span>
+                </el-form-item>
+              </div>
+            </div>
+            <div class="userBtn">
+              <span slot="footer" class="dialog-footer">
+                <el-button type="primary" @click="btnSavedata">保 存</el-button>
+                <el-button @click="closePermission">取 消</el-button>
+              </span>
+            </div>
+          </el-form>
+      </el-dialog>
+    </div>
+  </div>
+</template>
+<script>
+// 总条数
+let id = 10;
+import '../../style/common.css' /*引入公共样式*/
+/* api */
+// 数据列表  getListtreesdata
+// 新增数据 departAdd
+// 编辑 departModify
+// 删除 departDelete
+// 查询 departGet
+// 导出 departExportexcel
+import {getListtreesdata,
+		departAdd,
+		departDelete,
+		departModify,
+		departExportexcel,
+		departGet} from '../../api/unitslist'
+/* 公共接口 */
+//  getRegionsbyPid 获取子节点
+//  getRegiondetail 获取详情节点数据 提交使用
+import {
+		getRegionsbyPid,
+		getRegiondetail,
+		} from '../../api/commonapi'
+export default {
+  data() {
+    return {
+      tabIndex : '1',
+      // tree data
+      treeData: [
+        {
+          id: 1,
+          label: "北京",
+          children: [
+            {
+              id: 2,
+              label: "北京1"
+            }
+          ]
+				},
+				{
+          id: 3,
+          label: "上海"
+        }
+      ],
+      defaultProps: {
+        children: "children",
+        label: "label"
+      },
+      editEnterpriseTit : '编辑内容',
+      editEnterprise : false,
+      // 弹窗数据集合
+			workUnitdata : {
+				name : '',
+				region_full_name : '',
+				region_full_code : '',
+				region_code : '',
+				region_name : '',
+				/* 子列表点击数据 */
+				id : '',
+				code : '',
+				type : '',
+      },
+      // 子列表点击操作缓存数据
+			cacheDdata : {},
+			WorkunitType: [
+				{
+					value: '1',
+					label: '区域'
+				}, {
+					value: '2',
+					label: '单位'
+				}
+			],
+			WorkunitTypevalue : '2',
+      isShowregionFulldata : false,		// 地区下拉框状态
+      props: {
+				label: 'name',
+				children: 'children',
+			},
+			// 地区初始化 省级单位数据
+			InitRegionfulldata : [],
+      /* 分割 */
+			// 修改弹窗
+			editVisible: false,
+			editText : '',
+			editNode : {},
+			editData : {},
+      isEdit : true,  //  编辑
+      // root 
+      rootVisible : false,
+      rootText : '',
+    };
+  },
+  methods: {
+    // 初始化数据 可以为空
+		getInitlistData(){
+			let objData = {
+					"enterprise_id": localStorage.EnterpriseId
+				}
+			if(this.searchDepartmentname != ''){
+				objData.name = this.searchDepartmentname;
+			}
+			getListtreesdata(objData).then(res => {
+				if (res.status === 200 && res.data.result == "ok") {
+					this.treeData = res.data.data;
+				}
+			});	
+		},
+		// 初始化 tree 渲染函数
+		// 渲染函数
+		renderContent(h, { node, data, store }) {
+			return (
+				<span style="flex: 1; display: 
+				flex; align-items: center; justify-content: space-between; font-size: 14px; padding-right: 8px;">
+				<span>
+					<span style = {{color: (data.type == '2') ? "#f7e59a" : "#fff"}}>{node.label}</span>
+				</span>
+				<span>
+					<el-button
+					style="font-size: 12px;"
+					type="text"
+					on-click={() => this.workListappend(node,data)}
+					>
+					<span style="color:#fff;">添加</span>
+					</el-button>
+					<el-button
+					style="font-size: 12px;"
+					type="text"
+					on-click={() => this.workListremove(node, data)}
+					>
+					<span style="color:#fff;">删除</span>
+					</el-button>
+					<el-button
+					type="text"
+					on-click={() => this.workListedit(node, data)}
+					style="font-size: 12px;"
+					>
+					<span style =  {{display: (data.type == '1') ? "none" : "block"}}> 
+					<span style="color:#fff;" >编辑</span>
+					</span>
+					</el-button>
+				</span>
+				</span>
+			);
+    },
+    closePermission(){
+      this.editEnterprise = false;
+
+    },
+    // 弹窗按钮保存
+    btnSavedata(){
+      console.log('保存');
+    },
+
+		// 地区下拉选择 懒加载
+		regionFulltree(node,resolve){
+			if (node.level === 0) {
+				return resolve(this.InitRegionfulldata);
+			}
+			// 全国节点 下拉数据
+			let objData = {
+					"pid": node.data.id
+				}
+			getRegionsbyPid(objData).then(res => {
+				if (res.status === 200 && res.data.result == "ok") {
+					resolve(res.data.data.regions)
+				}
+			});	
+		},
+		// 地区点击选择
+		synchronouRegionsdata(data,node){
+			// 查询详情接口 递归查询所有父节点
+			// 全过除外面
+			if(data.id != "000000000000"){
+				let objData = {
+					"id": data.id,
+					"timestamp": 0
+				}
+				getRegiondetail(objData).then(res => {
+					if (res.status === 200 && res.data.result == "ok") {
+						// 当前点击的数据获取的数据
+						this.workUnitdata.region_full_name = res.data.data.region_details[0].names;
+						this.workUnitdata.region_full_code = res.data.data.region_details[0].ids;
+						// 当前点击的数据
+						this.workUnitdata.region_code = data.id
+						this.workUnitdata.region_name = data.name
+					}
+				});	
+			}else{
+				// 同步数据
+				this.workUnitdata.region_full_name = '全国';
+				this.workUnitdata.region_full_code = '000000000000';
+				// 当前点击的数据
+				this.workUnitdata.region_code = '000000000000'
+				this.workUnitdata.region_name ='全国'
+			}
+		},
+		// 地区下拉关闭按钮
+		closeShowregionFulldata(){
+			this.isShowregionFulldata = false;
+		},
+    /* 分割 */
+    // 添加
+    append(data) {
+			// 弹窗
+			this.editVisible = true;
+			this.isEdit = false;
+			// 存下数据
+			this.editData = data;
+     
+    },
+    // 删除
+    remove(node, data) {
+      const parent = node.parent;
+      const children = parent.data.children || parent.data;
+      const index = children.findIndex(d => d.id === data.id);
+      children.splice(index, 1);
+    },
+    // 编辑
+    edit(node, data) {
+			this.editVisible = true;
+			this.isEdit = true;
+			// 存下数据
+			this.editNode = node;
+			// 修改内容
+      this.editText = node.data.label;
+		},
+		// 弹窗确认保存  编辑／修改 实时保存  ajax
+		saveClick(){
+
+			this.editVisible = false;
+
+			if(this.isEdit){
+				// 编辑
+				this.editNode.data.label = this.editText
+			}else{
+				// 添加
+				const newChild = { id: id++, label: this.editText, children: [] };
+
+				if (!this.editData.children) {
+					this.$set(this.editData, "children", []);
+				}
+				this.editData.children.push(newChild);
+			}
+
+			// 清空记录
+			this.editText = '';
+			this.editNode = null;
+			this.editData = null;
+		},	
+		// 弹窗 取消
+		cancelClick(){
+			this.editVisible = false;
+			// 清空记录
+			this.editText = '';
+			this.editNode = null;
+		},
+		// 渲染函数
+    renderContent(h, { node, data, store }) {
+      return (
+        <span style="flex: 1; display: flex; align-items: center; justify-content: space-between; font-size: 14px; padding-right: 8px;">
+          <span>
+            <span>{node.label}</span>
+          </span>
+          <span>
+            <el-button
+              class="btn"
+              style="font-size: 12px;"
+              type="text"
+              on-click={() => this.append(data)}
+            >
+            <span style='color:#fff;'>添加</span>
+            </el-button>
+            <el-button
+              class="btn"
+              style="font-size: 12px;"
+              type="text"
+              on-click={() => this.remove(node, data)}
+            >
+            <span style='color:#fff;'>删除</span>
+            </el-button>
+            <el-button
+              class="btn"
+              style="font-size: 12px;"
+              type="text"
+              on-click={() => this.edit(node, data)}
+            >
+            <span style='color:#fff;'>编辑</span>
+            </el-button>
+          </span>
+        </span>
+      );
+    },
+    // root 操作
+    addRoordata(){
+      this.editEnterprise = true;
+    },
+    // 跳转下一级
+		saveTreedata(){
+      // 获取当前节点
+      // 获取最高节点
+      // 跳转节点
+      let val = this.$store.state.skipIndex;
+      let tabIndex = this.$store.state.tabIndex;
+      if(val <= tabIndex){
+        this.$store.commit('skip',val - 0 + 1);
+        this.$store.commit('moduleSkip',val - 0 + 1);
+      }else{
+        this.$store.commit('moduleSkip',val - 0 + 1);
+      }
+    },
+  }
+};
+</script>
+<style scoped>
+#cont{
+    width: 93%;
+    padding: 30px;
+    margin: 20px;
+    background: #354166;
+    -webkit-box-shadow: 0px 0px 26px #01060e;
+    box-shadow: 0px 0px 26px #01060e;
+}
+#cont .btn span {
+  color: #fff !important;
+}
+.el-button span{
+  color: #fff!important;
+}
+.title{
+  font-size: 16px;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #4a567c;
+  overflow: hidden;
+}
+.title .tit-rt{
+  float: right;
+  margin-right: 45px;
+}
+
+</style>
+

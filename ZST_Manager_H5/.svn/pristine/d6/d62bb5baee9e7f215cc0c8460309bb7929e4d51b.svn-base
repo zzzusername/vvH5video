@@ -1,0 +1,11 @@
+import request from './request';
+import qs from "qs";
+
+// 列出企业下的会议信息
+export function conferenceList(data) {
+    return request({
+        url: '/admin/api/v1/video_management/conference/list',
+        method: 'post',
+        data: data
+    })
+}

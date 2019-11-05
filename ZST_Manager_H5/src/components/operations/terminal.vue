@@ -1,0 +1,1945 @@
+<template>
+  <!-- 终端同步 -->
+  <div class="mRight" id="terminalPage">
+    <div class="mRightTwo">
+      <div class="zForm">
+        <span>名称</span>
+        <input v-model="zInput" class="zInput" type="text" placeholder />
+        <button @click="queryVersionList(false)">查询</button>
+        <button @click="getVersionList('','all')">全部</button>
+        <span class="btnRight">
+          <button @click="addUp">新增</button>
+        </span>
+      </div>
+      <div class="zTable">
+        <div class="elTable">
+          <!-- <vue-scroll :ops="ops" ref="vs"> -->
+          <div class="scrollbox">
+            <el-table ref="multipleTable" :data="tableData3" style="width: 100%">
+              <el-table-column type="index" label="序号"></el-table-column>
+              <el-table-column prop="name" label="数据源名称"></el-table-column>
+              <el-table-column prop="ip" label="IP地址"></el-table-column>
+              <el-table-column prop="account" label="登录账号"></el-table-column>
+              <el-table-column prop="password" label="登录密码"></el-table-column>
+              <el-table-column prop="port" label="端口号"></el-table-column>
+              <el-table-column prop="manager_name" label="负责人名称"></el-table-column>
+              <el-table-column prop="manager_phonenum" label="负责人手机号码"></el-table-column>
+              <el-table-column prop="is_ssl" label="是否为https">
+                <template slot-scope="scope">
+                  <span v-if="scope.row.is_sync_auto == true">是</span>
+                  <span v-else>否</span>
+                </template>
+              </el-table-column>
+
+              <el-table-column prop="is_sync_auto" label="是否自动同步">
+                <template slot-scope="scope">
+                  <span v-if="scope.row.is_sync_auto == true">是</span>
+                  <span v-else>否</span>
+                </template>
+              </el-table-column>
+
+              <el-table-column width="150" prop="sync_time" label="同步时间">
+                <template slot-scope="scope">
+                  <span v-if="scope.row.sync_time == ''">暂无</span>
+                  <span
+                    v-else
+                  >{{ parseInt(scope.row.sync_time) | FormatDate('yyyy-MM-dd hh:mm:ss') }}</span>
+                </template>
+              </el-table-column>
+              <!-- <el-table-column
+                      label="同步结果">
+                      <template slot-scope="scope">
+                        <el-popover trigger="hover" placement="top">
+                          <p>{{ scope.row.name }}</p>
+
+                          <div slot="reference" class="name-wrapper">
+                            <el-tag size="medium">{{ scope.row.sync_result }}</el-tag>
+                          </div>
+                        </el-popover>
+                      </template>
+              </el-table-column>-->
+              <el-table-column prop="sync_result" :show-overflow-tooltip="true" label="同步结果">
+                <template slot-scope="scope">
+                  <span v-if="scope.row.sync_result == ''">暂无</span>
+                  <span v-else>{{ scope.row.sync_result}}</span>
+                </template>
+              </el-table-column>
+              <el-table-column width="150" prop="createtime" label="创建时间">
+                <template slot-scope="scope">
+                  <span
+                    class="list_Time"
+                  >{{ scope.row.createtime | FormatDate('yyyy-MM-dd hh:mm:ss') }}</span>
+                </template>
+              </el-table-column>
+
+              <el-table-column width="150" label="操作">
+                <template slot-scope="scope">
+                  <a href="javascript:;" class="ml5">
+                    <span @click="editpust(scope.row)">编辑</span>
+                  </a>
+                  <a href="javascript:;" class="ml5" @click="terminal_synchronization(scope.row)">
+                    <span>同步</span>
+                  </a>
+                  <a href="javascript:;" class="ml5" @click="deletelist(scope.row)">
+                    <span>删除</span>
+                  </a>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+          <!-- </vue-scroll> -->
+        </div>
+        <el-pagination
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+          :current-page.sync="pagenumber"
+          :page-size="pagesize"
+          layout="total, prev, pager, next, jumper"
+          :total="total"
+        ></el-pagination>
+      </div>
+    </div>
+
+    <div id="terminalPageAddModel">
+      <el-dialog
+        :close-on-click-modal="false"
+        title="终端同步地址 - 新增"
+        :visible.sync="dialogterminaladd"
+      >
+        <el-form :model="terminaladd" ref="terminaladd" label-width="40%" class="demo-ruleForm">
+          <div class="formTable">
+            <div class="block">
+              <el-form-item label="数据源名称" :rules="[{ required: true, message: ' '}]" prop="name">
+                <el-input v-model="terminaladd.name" maxlength="50"></el-input>
+              </el-form-item>
+            </div>
+            <div class="block">
+              <el-form-item label="IP" :rules="[{ required: true, message: ' '}]" prop="ip">
+                <el-input v-model="terminaladd.ip" maxlength="50"></el-input>
+              </el-form-item>
+            </div>
+
+            <div class="block">
+              <el-form-item label="端口" :rules="[{ required: true, message: ' '}]" prop="port">
+                <el-input v-model="terminaladd.port" maxlength="50"></el-input>
+              </el-form-item>
+            </div>
+
+            <div class="block">
+              <el-form-item label="登录账号" :rules="[{ required: true, message: ' '}]" prop="account">
+                <el-input v-model="terminaladd.account" maxlength="50"></el-input>
+              </el-form-item>
+            </div>
+
+            <div class="block">
+              <el-form-item label="登录密码" :rules="[{ required: true, message: ' '}]" prop="password">
+                <el-input v-model="terminaladd.password" maxlength="50"></el-input>
+              </el-form-item>
+            </div>
+            <div class="block">
+              <el-form-item
+                label="负责人"
+                :rules="[{ required: true, message: ' '}]"
+                prop="manager_name"
+              >
+                <el-input v-model="terminaladd.manager_name" maxlength="50"></el-input>
+              </el-form-item>
+            </div>
+            <div class="block">
+              <el-form-item
+                label="手机号"
+                :rules="[{ required: true, message: ' '}]"
+                prop="manager_phonenum"
+              >
+                <el-input
+                  v-model="terminaladd.manager_phonenum"
+                  @change="isRealNum"
+                  placeholder="请输入数字手机号"
+                  maxlength="11"
+                ></el-input>
+              </el-form-item>
+            </div>
+            <div class="block">
+              <el-form-item
+                label="自动同步"
+                :rules="[{ required: true, message: ' '}]"
+                prop="VersionNum"
+              >
+                <el-radio-group v-model="add_is_sync_auto" @change="genderchange">
+                  <el-radio label="yes">是</el-radio>
+                  <el-radio label="no">否</el-radio>
+                </el-radio-group>
+              </el-form-item>
+            </div>
+             <div class="block">
+              <el-form-item
+                label="是否为https"
+                :rules="[{ required: true, message: ' '}]"
+                prop="VersionNum"
+              >
+                <el-radio-group v-model="add_is_ssh_auto" @change="genderchange">
+                  <el-radio label="yes">是</el-radio>
+                  <el-radio label="no">否</el-radio>
+                </el-radio-group>
+              </el-form-item>
+            </div>
+          </div>
+          <div class="userBtn2">
+            <el-form-item>
+              <el-button type="primary" @click="addSubmit">保存</el-button>
+              <el-button @click="addCancel">取消</el-button>
+            </el-form-item>
+          </div>
+        </el-form>
+      </el-dialog>
+    </div>
+    <div id="terminalPageEditModel">
+      <el-dialog
+        :close-on-click-modal="false"
+        title="终端同步地址 - 编辑"
+        :visible.sync="dialogterminaledit"
+      >
+        <el-form :model="terminaledit" ref="adminedit" label-width="38%" class="demo-ruleForm">
+          <div class="formTable">
+            <div class="block">
+              <el-form-item label="数据源名称" :rules="[{ required: true, message: ' '}]" prop="name">
+                <el-input v-model="terminaledit.name" maxlength="50"></el-input>
+              </el-form-item>
+            </div>
+            <div class="block">
+              <el-form-item label="IP" :rules="[{ required: true, message: ' '}]" prop="ip">
+                <el-input v-model="terminaledit.ip" maxlength="50"></el-input>
+              </el-form-item>
+            </div>
+
+            <div class="block">
+              <el-form-item label="端口" :rules="[{ required: true, message: ' '}]" prop="port">
+                <el-input v-model="terminaledit.port" maxlength="50"></el-input>
+              </el-form-item>
+            </div>
+
+            <div class="block">
+              <el-form-item label="登录账号" :rules="[{ required: true, message: ' '}]" prop="account">
+                <el-input v-model="terminaledit.account" maxlength="50"></el-input>
+              </el-form-item>
+            </div>
+
+            <div class="block">
+              <el-form-item label="登录密码" :rules="[{ required: true, message: ' '}]" prop="password">
+                <el-input v-model="terminaledit.password" maxlength="50"></el-input>
+              </el-form-item>
+            </div>
+            <div class="block">
+              <el-form-item
+                label="负责人"
+                :rules="[{ required: true, message: ' '}]"
+                prop="manager_name"
+              >
+                <el-input v-model="terminaledit.manager_name" maxlength="50"></el-input>
+              </el-form-item>
+            </div>
+            <div class="block">
+              <el-form-item
+                label="手机号"
+                :rules="[{ required: true, message: ' '}]"
+                prop="manager_phonenum"
+              >
+                <el-input
+                  v-model="terminaledit.manager_phonenum"
+                  @change="isRealNum_edit"
+                  placeholder="请输入数字手机号"
+                  maxlength="11"
+                ></el-input>
+              </el-form-item>
+            </div>
+            <div class="block">
+				<el-form-item
+					label="自动同步"
+					:rules="[{ required: true, message: ' '}]"
+					prop="VersionNum"
+				>
+					<el-radio-group v-model="edit_is_sync_auto">
+					<el-radio label="yes">是</el-radio>
+					<el-radio label="no">否</el-radio>
+					</el-radio-group>
+				</el-form-item>
+            </div>
+			 <div class="block">
+				<el-form-item
+					label="是否为https"
+					:rules="[{ required: true, message: ' '}]"
+					prop="VersionNum"
+				>
+					<el-radio-group v-model="edit_is_https">
+					<el-radio label="yes">是</el-radio>
+					<el-radio label="no">否</el-radio>
+					</el-radio-group>
+				</el-form-item>
+            </div>
+          </div>
+          <div class="userBtn2">
+            <el-form-item>
+              <el-button type="primary" @click="editSubmit">保存</el-button>
+              <el-button @click="editCancel('1')">取消</el-button>
+            </el-form-item>
+          </div>
+        </el-form>
+      </el-dialog>
+    </div>
+    <div id="terminalPagebox">
+      <el-dialog
+        :close-on-click-modal="false"
+        title="辅助服务器 - 监控和终端"
+        :visible.sync="dialogserverbox"
+      >
+        <el-form :model="Serverdata" ref="adminedit" label-width="25%" class="demo-ruleForm">
+          <div class="formTable">
+            <div class="block">
+              <el-form-item
+                label="监控平台URL："
+                :rules="[{ required: true, message: ' '}]"
+                prop="VersionNum"
+              >
+                <el-input v-model="Serverdata.monitor_server" maxlength="50" disabled></el-input>
+              </el-form-item>
+
+              <el-tooltip
+                class="item"
+                effect="dark"
+                :content="this.terminal_status"
+                placement="right"
+              >
+                <el-button class="tooltipbutton">
+                  <img
+                    src="../../assets/Success.png"
+                    v-if="this.terminal_server_status"
+                    alt="服务器连接正常"
+                  />
+                  <img src="../../assets/fail.png" v-if="this.terminal_server_all" alt="服务器连接失败" />
+                </el-button>
+              </el-tooltip>
+            </div>
+            <div class="block">
+              <el-form-item label="会管服务器URL：" prop="VersionNum">
+                <el-input v-model="Serverdata.terminal_server" maxlength="50" disabled></el-input>
+              </el-form-item>
+
+              <el-tooltip class="item" effect="dark" :content="monitor_status" placement="right">
+                <el-button class="tooltipbutton">
+                  <img
+                    src="../../assets/Success.png"
+                    v-if="this.monitor_server_status "
+                    alt="服务器连接正常"
+                  />
+                  <img src="../../assets/fail.png" v-if=" this.monitor_server_all" alt="服务器连接失败" />
+                </el-button>
+              </el-tooltip>
+            </div>
+
+            <div class="block">
+              <el-form-item
+                label="终端通讯录同步方式：："
+                :rules="[{ required: true, message: ' '}]"
+                prop="VersionNum"
+              >
+                <el-radio-group v-model="enabled" @change="enabledlick">
+                  <el-radio label="0">手动</el-radio>
+                  <el-radio label="1">自动</el-radio>
+                </el-radio-group>
+
+                <span
+                  class="butclick"
+                  type="primary"
+                  @click="terminal_synchronization_to()"
+                  v-loading.fullscreen.lock="fullscreenLoading"
+                >同步</span>
+              </el-form-item>
+            </div>
+          </div>
+          <div class="userBtn2">
+            <el-form-item>
+              <!--<el-button type="primary" @click="editSubmit">保存</el-button>-->
+              <el-button @click="editCancel('2')">关闭</el-button>
+            </el-form-item>
+          </div>
+        </el-form>
+      </el-dialog>
+    </div>
+  </div>
+</template>
+<script>
+import $ from "jquery";
+import axios from "axios";
+import {
+  getRegionsbyPid,
+  getRegiondetail
+} from "@/components/interface/common.js";
+import {
+  getassist_serverlist,
+  getassist_serverdelete,
+  getassist_terminaladd,
+  getassist_serverget,
+  getassist_servermodify,
+  get_monitor_server_status,
+  get_terminal_server_status,
+  get_monitor_server_and_terminal_server_config,
+  get_set_terminal_sync_auto,
+  get_sync_terminal_dev_data,
+  get_sterminal_server_list,
+  get_sterminal_server_add,
+  get_sterminal_server_modify,
+  get_sterminal_server_get,
+  get_sterminal_server_delete,
+  get_sterminal_server_sync_data
+} from "@/components/interface/resource.js";
+
+import { Loading } from "element-ui";
+
+var page = 0;
+var totalNum = false,
+  count = 0;
+var indexCount = 0;
+var CancelToken = axios.CancelToken;
+var custom = CancelToken.source();
+var upfile = false,
+  fileChange = false;
+var treedata = [];
+
+//  var Valindex;
+var TreeDataId = "";
+export default {
+  data() {
+    return {
+      fullscreenLoading: false,
+      enabled: "1",
+
+      addressHtml: "",
+      Fid: "",
+      treeid: "",
+      percentage: 0,
+      addinputdata: "",
+      ops: {
+        vuescroll: {
+          mode: "native"
+        },
+        scrollPanel: {}
+      },
+      server_id: 0,
+      zInput: "",
+      data: [],
+      enabled: "0",
+      total: 1,
+      checked: false,
+      querybut: false,
+      multipleSelection: [],
+      dialogterminaladd: false,
+      dialogterminaledit: false,
+      dialogserverbox: false,
+      TerminaInformation: false,
+      showtreebox: false,
+      filedata: "",
+      terminal_server_status: false, //获取会管（终端通讯录）服务器的状态信息
+      terminal_status: "服务器连接正常", //获取会管（终端通讯录）服务器
+      monitor_server_status: false, //获取监控平台（唐古拉）服务器的状态信息
+      monitor_server_all: false, //获取监控平台（唐古拉）服务器的状态信息
+      terminal_server_all: false, //获取监控平台（唐古拉）服务器的状态信息
+      monitor_status: "服务器连接失败", //获取监控平台（唐古拉）服务器
+
+      add_is_sync_auto: "yes",
+      add_is_ssh_auto: "yes",
+      edit_is_sync_auto: "yes",
+      edit_is_https: "yes",
+
+      terminaladd: {
+        account: "", //账号
+        ip: "",
+        is_ssl: false, //是否遵守SSL协议
+        is_sync_auto: false, //是否自动同步
+        manager_name: "", //负责人名称
+        manager_phonenum: "", //负责人手机号码
+        name: "",
+        password: "",
+        port: ""
+      },
+      terminaledit: {
+        id: "",
+        account: "",
+        ip: "",
+        is_ssl: false,
+        is_sync_auto: false,
+        manager_name: "",
+        manager_phonenum: "",
+        name: "",
+        password: "",
+        port: ""
+      },
+      Serverdata: {
+        monitor_server: "",
+        terminal_server: ""
+      },
+
+      delete: {
+        idList: [],
+        clientKey: localStorage.clientKey,
+        token: localStorage.token
+      },
+
+      tableData3: [],
+      pagenumber: page,
+      pagesize: scopes,
+      terminalList: [],
+      terminalID: "",
+      FileType: "",
+      filezip: "",
+      regions: {}
+    };
+  },
+
+  mounted: function() {
+    var hei = document.documentElement.clientHeight;
+    $(".mRightTwo").css("height", hei - 178);
+    $(window).resize(function() {
+      var wid = document.documentElement.clientWidth,
+        hei = document.documentElement.clientHeight;
+      $(".mRightTwo").css("height", hei - 178);
+    });
+    this.getVersionList("", "");
+
+    $(".UploadPath").css("display", "none");
+  },
+  methods: {
+    genderchange(a) {
+      console.log(a);
+    },
+    //手机号验证数zi
+    isRealNum_edit(val) {
+      if (!isNaN(val)) {
+      } else {
+        this.terminaledit.manager_phonenum = "";
+        this.$message.error("请输入数字手机号");
+      }
+    },
+    isRealNum(val) {
+      if (!isNaN(val)) {
+      } else {
+        this.terminaladd.manager_phonenum = "";
+        this.$message.error("请输入数字手机号");
+      }
+    },
+    terminal_synchronization(row) {
+      console.log(row);
+      this.$confirm("同步时间较长时间，是否继续?", "消息", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(() => {
+          this.fullscreenLoading = true;
+
+          var _this = this;
+          var Syncid = {
+            id: row.id
+          };
+
+          get_sterminal_server_sync_data(Syncid)
+            .then(function(res) {
+              if (res.status === 200 && res.data.result == "ok") {
+                console.log(res);
+                // _this.fullscreenLoading = false;
+                _this.$message({
+                  message: "同步成功",
+                  type: "success"
+                });
+                _this.getVersionList("", "all");
+              } else {
+                console.log(res);
+                if (
+                  res.data.error_description ===
+                    "Connection refused (Connection refused)" ||
+                  res.data.error_description === "Connection refused"
+                ) {
+                  _this.$message({
+                    message: "无法连接到服务器，请检查IP地址和端口号是否正确",
+                    type: "success"
+                  });
+                } else if (
+                  res.data.error_description ===
+                    "Connection timed out (Connection timed out)" ||
+                  res.data.error_description === "Connection timed out"
+                ) {
+                  _this.$message({
+                    message: "连接服务器超时",
+                    type: "success"
+                  });
+                } else
+                  _this.$message({
+                    message: res.data.error_description,
+                    type: "success"
+                  });
+              }
+            })
+            .catch(function(error) {
+              this.fullscreenLoading = false;
+              console.log(error);
+            });
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消删除"
+          });
+        });
+    },
+    //点击监控和终端
+    getserver(row) {
+      console.log(row);
+      this.Serverdata = {};
+      this.terminal_server_status = false;
+      this.monitor_server_status = false;
+      this.server_id = row.id;
+      var id = {
+        assist_server_id: row.id
+      };
+      var _this = this;
+      _this.monitorstatus(id); //      获取监控平台（唐古拉）服务器的状态信息
+      _this.terminalstatus(id); //      获取会管（终端通讯录）服务器的状态信息
+
+      get_monitor_server_and_terminal_server_config(id)
+        .then(function(res) {
+          if (res.status === 200 && res.data.result == "ok") {
+            var list = res.data.data;
+            console.log("点击监控和终端");
+            console.log(list);
+
+            if (list.terminal_sync_config.sync_auto) {
+              _this.enabled = "1";
+            } else {
+              _this.enabled = "0";
+            }
+            if (list.monitor_server.port_ssl === 0) {
+              _this.Serverdata.monitor_server =
+                "http://" +
+                list.monitor_server.ip +
+                ":" +
+                list.monitor_server.port;
+            } else {
+              _this.Serverdata.monitor_server =
+                "http://" +
+                list.monitor_server.ip +
+                ":" +
+                list.monitor_server.port_ssl;
+            }
+
+            if (list.terminal_server.is_ssl === false) {
+              _this.Serverdata.terminal_server =
+                "http://" +
+                list.terminal_server.ip +
+                ":" +
+                list.terminal_server.port;
+            } else {
+              _this.Serverdata.terminal_server =
+                "https://" +
+                list.terminal_server.ip +
+                ":" +
+                list.terminal_server.port;
+            }
+
+            _this.dialogserverbox = true;
+            console.log("显示了");
+          }
+          if (res.data.result == "error") {
+            _this.dialogserverbox = true;
+            _this.terminal_server_status = false;
+            _this.Serverdata.monitor_server = "该辅助服务器地址无监控资源";
+            _this.Serverdata.terminal_server = "该辅助服务器地址无终端资源";
+
+            console.log(res);
+          }
+        })
+        .catch(function(error) {
+          console.log(error);
+        });
+    },
+
+    //      获取监控平台（唐古拉）服务器的状态信息
+    monitorstatus(ID) {
+      var _this = this;
+      get_monitor_server_status(ID)
+        .then(function(res) {
+          if (res.status === 200 && res.data.result == "ok") {
+            var response = res.data.data;
+            _this.terminal_server_status = response.available;
+
+            if (_this.terminal_server_status) {
+              _this.terminal_status = "服务器连接正常";
+            } else {
+              _this.terminal_status = "服务器连接失败";
+            }
+
+            console.log(response);
+          }
+          if (res.data.result == "error") {
+            _this.terminal_server_status = false;
+            _this.terminal_server_all = true;
+            _this.terminal_status = "服务器连接失败";
+
+            console.log(res);
+          }
+        })
+        .catch(function(error) {
+          console.log(error);
+        });
+    },
+
+    //      获取会管（终端通讯录）服务器的状态信息
+
+    terminalstatus(ID) {
+      var _this = this;
+
+      get_terminal_server_status(ID)
+        .then(function(res) {
+          if (res.status === 200 && res.data.result == "ok") {
+            var response = res.data.data.available;
+            _this.monitor_server_status = response;
+            console.log(_this.monitor_server_status);
+
+            if (response) {
+              _this.monitor_status = "服务器连接正常";
+            } else {
+              _this.monitor_status = "服务器连接失败";
+            }
+            console.log(response);
+          }
+          if (res.data.result == "error") {
+            _this.monitor_server_status = false;
+            _this.monitor_server_all = true;
+            _this.monitor_status = "服务器连接失败";
+
+            console.log(res);
+          }
+        })
+        .catch(function(error) {
+          console.log(error);
+        });
+    },
+
+    onback() {
+      this.TerminaInformation = false;
+      // this.getselect();
+    },
+    btnRightclick() {
+      this.TerminaInformation = true;
+      // this.getselect()
+    },
+
+    closedButton() {
+      this.showtreebox = false;
+      var par = {
+        id: this.$store.state.treeDatas.id,
+        timestamp: 0
+      };
+      var _this = this;
+      //获取行政区域详情
+      getRegiondetail(par)
+        .then(function(res) {
+          if (res.status === 200 && res.data.result == "ok") {
+            var response = res.data.data.region_details[0];
+
+            _this.regions = response;
+            console.log(_this.regions);
+          }
+          if (res.data.result == "error") {
+            _this.$message({
+              message: res.data.error_description,
+              type: "warning"
+            });
+            console.log(res);
+          }
+        })
+        .catch(function(error) {
+          console.log(error);
+        });
+    },
+    //新增时流媒体服务器清空
+    serverEliminate() {},
+
+    //打开新增lkj
+    addUp() {
+      console.log(this.terminaladd);
+      this.terminaladd;
+      this.percentage = 0;
+      count = 0;
+
+      $("#file").val("");
+      $("#files").val("");
+      upfile = false;
+      custom = CancelToken.source();
+      // this.getselect();
+      this.terminaladd = {
+        account: "", //账号
+        ip: "",
+        is_ssl: false, //是否遵守SSL协议
+        is_sync_auto: true, //是否自动同步
+        manager_name: "", //负责人名称
+        manager_phonenum: "", //负责人手机号码
+        name: "",
+        password: "",
+        port: ""
+      };
+
+      this.dialogterminaladd = true;
+      $("#file").val("");
+      this.FileType = "";
+    },
+    //取消新增lkj
+    addCancel() {
+      this.$message({
+        message: "已取消新增",
+        type: "info"
+      });
+      (this.terminaladd = {
+        api_url: "",
+        client_id: "",
+        client_secret: "",
+        name: "",
+        parameters: "{}"
+      }),
+        (this.dialogterminaladd = false);
+      custom.cancel();
+
+      this.$store.commit("changtree", []);
+    },
+    getval(val) {
+      console.log(val);
+      this.FileType = val;
+      if (val == "1") {
+        $(".UploadPath").css("display", "none");
+        $(".upload").css("display", "block");
+        $(".filePath").css("display", "block");
+      } else {
+        $(".UploadPath").css("display", "block");
+        $(".upload").css("display", "none");
+        $(".filePath").css("display", "none");
+      }
+    },
+    geterminalType(val) {
+      this.add.TerminalType = val.value;
+      this.add.TerminalTypeName = val.value;
+      console.log(this.add.TerminalType);
+    },
+    //新增开始
+    addSubmit() {
+      var flag = true;
+
+      console.log(this.terminaladd);
+      if (
+        this.terminaladd.name == "" &&
+        this.terminaladd.ip == "" &&
+        this.terminaladd.port == "" &&
+        this.terminaladd.account == "" &&
+        this.terminaladd.password == "" &&
+        this.terminaladd.manager_name == "" &&
+        this.terminaladd.manager_phonenum == ""
+      ) {
+        this.$message({
+          message: "数据不允许为空",
+          type: "warning"
+        });
+        flag = false;
+        return false;
+      } else if (this.terminaladd.name == "") {
+        this.$message({
+          message: "数据源名称",
+          type: "warning"
+        });
+        flag = false;
+        return false;
+      } else if (this.terminaladd.ip == "") {
+        this.$message({
+          message: "iP不允许为空",
+          type: "warning"
+        });
+        flag = false;
+        return false;
+      } else if (this.terminaladd.port == "") {
+        this.$message({
+          message: "端口不允许为空",
+          type: "warning"
+        });
+        flag = false;
+        return false;
+      } else if (this.terminaladd.account == "") {
+        this.$message({
+          message: "登录账号不允许为空",
+          type: "warning"
+        });
+        flag = false;
+        return false;
+      } else if (this.terminaladd.password == "") {
+        this.$message({
+          message: "登录密码不允许为空",
+          type: "warning"
+        });
+        flag = false;
+        return false;
+      } else if (this.terminaladd.manager_name == "") {
+        this.$message({
+          message: "负责人不允许为空",
+          type: "warning"
+        });
+        flag = false;
+        return false;
+      } else if (this.terminaladd.manager_phonenum == "") {
+        this.$message({
+          message: "手机号不允许为空",
+          type: "warning"
+        });
+        flag = false;
+        return false;
+      } else if (
+        this.terminaladd.manager_phonenum == "" ||
+        this.terminaladd.manager_phonenum.length != 11
+      ) {
+        this.$message({
+          message: "请输入11位手机号",
+          type: "warning"
+        });
+        flag = false;
+      }
+      this.terminaladd.is_sync_auto = this.add_is_sync_auto == "yes" ? true : false;
+      this.terminaladd.is_ssl = this.add_is_ssh_auto == "yes" ? true : false;
+      console.log(this.terminaladd);
+      var _this = this;
+      //新增辅助服务器
+      if (flag) {
+        get_sterminal_server_add(this.terminaladd)
+          .then(function(res) {
+            if (res.status === 200 && res.data.result == "ok") {
+              var response = res;
+              _this.$message({
+                message: "新增成功",
+                type: "success"
+              });
+              _this.dialogterminaladd = false;
+              _this.getVersionList("", "");
+            }
+            if (res.data.result == "error") {
+              console.log(res);
+              _this.$message({
+                message: res.data.error_description,
+                type: "warning"
+              });
+            }
+          })
+          .catch(function(error) {
+            console.log(error);
+          });
+      }
+    },
+
+    //获取列表数据
+    getVersionList(isall, all) {
+      this.zInput = "";
+      let _this = this;
+      let URL = window.ServerUrl;
+      var pageSize = this.pagesize,
+        pagenumber = this.pagenumber - 1;
+      var terminalType = "";
+      var par = {
+        page_number: pagenumber,
+        page_size: pageSize,
+        name: isall
+      };
+
+      get_sterminal_server_list(par)
+        .then(function(res) {
+          if (res.status === 200 && res.data.result == "ok") {
+            if (isall === "") {
+              if (all == "all") {
+                _this.value = "";
+                _this.querybut = false;
+                _this.$message({
+                  message: "全部数据",
+                  type: "success"
+                });
+              }
+            } else {
+              _this.querybut = true;
+              _this.$message({
+                message: "查询完成",
+                type: "success"
+              });
+            }
+
+            let response = res.data.data.list;
+            // response[0].sync_result="1111111111111111111111111111111sdadwa"
+
+            _this.tableData3 = response;
+
+            console.log(_this.tableData3);
+            _this.total = res.data.data.page_total_items;
+          }
+          if (res.data.result == "error") {
+            _this.$message({
+              message: res.data.error_description,
+              type: "warning"
+            });
+            console.log(res);
+          }
+        })
+        .catch(function(error) {
+          console.log(error);
+        });
+    },
+    //查询列表数据
+    queryVersionList(isall) {
+      if (this.zInput === "") {
+        this.$message({
+          message: "请选择查询项",
+          type: "warning"
+        });
+      } else {
+        this.getVersionList(this.zInput);
+      }
+    },
+
+    //上传文件框
+    getFile(e) {
+      console.log(e);
+      this.file = e.target.files[0];
+      var file = document.getElementById("files").files[0];
+      this.filedata = file;
+      console.log(this.filedata);
+      document.getElementById("file").value = file.name;
+      this.add.fileName = file.name;
+
+      this.percentage = 0;
+      count = 0;
+      $(".el-progress__text i").css("color", "#fff");
+    },
+
+    // 文件上传结束
+    changeFun(val) {
+      //复选框
+      this.multipleSelection = val;
+      console.log(this.multipleSelection);
+    },
+    handleSizeChange: function(size) {
+      this.pagesize = size;
+    },
+    handleCurrentChange: function(pagenumber) {
+      this.pagenumber = pagenumber;
+      page = this.pagenumber;
+      //this.getMenuInfoList();  //获取列表的函数
+      // console.log("search:"+this.value);
+      this.pageChange();
+    },
+    pageChange() {
+      let _this = this;
+      let URL = window.ServerUrl;
+      var pageSize = this.pagesize,
+        pagenumber = this.pagenumber - 1;
+      var terminalType = "";
+      var par = {
+        page_number: pagenumber,
+        page_size: pageSize,
+        name: ""
+      };
+      if (this.querybut) {
+        par.name = this.zInput;
+      }
+
+      get_sterminal_server_list(par)
+        .then(function(res) {
+          if (res.status === 200 && res.data.result == "ok") {
+            let response = res.data.data.list;
+
+            _this.tableData3 = response;
+
+            console.log(_this.tableData3);
+            _this.total = res.data.data.page_total_items;
+          }
+          if (res.data.result == "error") {
+            _this.$message({
+              message: res.data.error_description,
+              type: "warning"
+            });
+            console.log(res);
+          }
+        })
+        .catch(function(error) {
+          console.log(error);
+        });
+    },
+    //删除
+    deletelist(index) {
+      console.log(index);
+
+      this.$confirm("是否执行删除操作?", "消息", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(() => {
+          var str = [];
+          var _this = this;
+
+          var delDate = {
+            id: index.id
+          };
+          console.log(delDate);
+          get_sterminal_server_delete(delDate)
+            .then(function(res) {
+              if (res.status === 200 && res.data.result == "ok") {
+                _this.$message({
+                  message: "删除成功",
+                  type: "success"
+                });
+                _this.getVersionList("", "");
+              } else {
+                _this.$message({
+                  message: "删除失败",
+                  type: "success"
+                });
+                console.log(error);
+              }
+            })
+            .catch(function(error) {
+              console.log(error);
+            });
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消删除"
+          });
+        });
+    },
+
+    //同步
+    //
+    //点击编辑按钮
+
+    editpust(row) {
+      this.terminaledit = {
+        account: "",
+        ip: "",
+        is_ssl: false,
+        is_sync_auto: false,
+        manager_name: "",
+        manager_phonenum: "",
+        name: "",
+        password: "",
+        port: ""
+      };
+      console.log(row);
+      var id = {
+        id: row.id
+      };
+      var _this = this;
+      //获取指定ID的辅助服务器
+      get_sterminal_server_get(id)
+        .then(function(res) {
+          if (res.status === 200 && res.data.result == "ok") {
+            console.log(res);
+            _this.terminaledit = res.data.data;
+            _this.edit_is_sync_auto = _this.terminaledit.is_sync_auto == true ? "yes" : "no";
+            _this.edit_is_https = _this.terminaledit.is_ssl == true ? "yes" : "no";
+          }
+          if (res.data.result == "error") {
+            console.log(res);
+          }
+        })
+        .catch(function(error) {
+          console.log(error);
+        });
+
+      this.dialogterminaledit = true;
+    },
+    //编辑提交
+    editSubmit() {
+      var flag = true;
+      if (
+        this.terminaledit.name == "" &&
+        this.terminaledit.ip == "" &&
+        this.terminaledit.port == "" &&
+        this.terminaledit.account == "" &&
+        this.terminaledit.password == "" &&
+        this.terminaledit.manager_name == "" &&
+        this.terminaledit.manager_phonenum == ""
+      ) {
+        this.$message({
+          message: "数据不允许为空",
+          type: "warning"
+        });
+        flag = false;
+        return false;
+      } else if (this.terminaledit.name == "") {
+        this.$message({
+          message: "数据源名称不允许为空",
+          type: "warning"
+        });
+        flag = false;
+        return false;
+      } else if (this.terminaledit.ip == "") {
+        this.$message({
+          message: "IP不允许为空",
+          type: "warning"
+        });
+        flag = false;
+        return false;
+      } else if (this.terminaledit.port == "") {
+        this.$message({
+          message: "端口不允许为空",
+          type: "warning"
+        });
+        flag = false;
+        return false;
+      } else if (this.terminaledit.account == "") {
+        this.$message({
+          message: "登录账号不允许为空",
+          type: "warning"
+        });
+        flag = false;
+        return false;
+      } else if (this.terminaledit.password == "") {
+        this.$message({
+          message: "登录密码不允许为空",
+          type: "warning"
+        });
+        flag = false;
+        return false;
+      } else if (this.terminaledit.manager_name == "") {
+        this.$message({
+          message: "负责人不允许为空",
+          type: "warning"
+        });
+        flag = false;
+        return false;
+      } else if (this.terminaledit.manager_phonenum == "") {
+        this.$message({
+          message: "手机号不允许为空",
+          type: "warning"
+        });
+        flag = false;
+        return false;
+      }
+      this.terminaledit.is_sync_auto = this.edit_is_sync_auto == "yes" ? true : false;
+      delete this.terminaledit.sync_result;
+      delete this.terminaledit.sync_time;
+      delete this.terminaledit.createtime;
+      this.terminaledit.is_ssl = this.edit_is_https == "yes" ? true : false;
+
+      console.log(this.terminaledit);
+      var _this = this;
+      if (flag) {
+        //编辑辅助服务器
+        get_sterminal_server_modify(this.terminaledit)
+          .then(function(res) {
+            if (res.status === 200 && res.data.result == "ok") {
+              var response = res;
+              _this.$message({
+                message: "编辑成功",
+                type: "success"
+              });
+              _this.dialogterminaledit = false;
+              _this.getVersionList("", "");
+            }
+            if (res.data.result == "error") {
+              _this.$message({
+                message: res.data.error_description,
+                type: "warning"
+              });
+            }
+          })
+          .catch(function(error) {
+            console.log(error);
+          });
+      }
+    },
+    editCancel(e) {
+      if (e === "1") {
+        this.dialogterminaledit = false;
+      } else {
+        this.dialogserverbox = false;
+      }
+    },
+    //终端通讯录同步方式切换
+
+    enabledlick(a) {
+      var req = {
+        assist_server_id: this.server_id,
+        sync_auto: false
+      };
+      if (a === "1") {
+        req.sync_auto = true;
+        console.log(a);
+      }
+
+      var _this = this;
+      get_set_terminal_sync_auto(req)
+        .then(function(res) {
+          if (res.status === 200 && res.data.result == "ok") {
+          }
+          if (res.data.result == "error") {
+            console.log(res);
+          }
+        })
+        .catch(function(error) {
+          console.log(error);
+        });
+    }
+  },
+  //
+  beforeDestroy() {
+    console.log("beforeDestroy");
+    this.$store.commit("changtree", []);
+  },
+  updated() {
+    var addmodHei = $("#terminalPageAddModel .el-dialog").height();
+    $("#terminalPageAddModel .el-dialog").css("marginTop", -(addmodHei / 2));
+    $("#terminalPageAddModel .el-dialog").css("marginBottom", 0);
+    var addmodHei1 = $("#terminalPageEditModel .el-dialog").height();
+    $("#terminalPageEditModel .el-dialog").css("marginTop", -(addmodHei1 / 2));
+    $("#terminalPageEditModel .el-dialog").css("marginBottom", 0);
+    var addmodHei2 = $("#terminalPagebox .el-dialog").height();
+    $("#terminalPagebox .el-dialog").css("marginTop", -(addmodHei2 / 2));
+    $("#terminalPagebox .el-dialog").css("marginBottom", 0);
+    // $('.TerminaLeft li')
+    $(".TerminaLeft li").click(function() {
+      $(".TerminaLeft li").css("background", "");
+      $(this).css("background", "#57e29b");
+    });
+  }
+};
+import Tools from "../media/Tools.js";
+</script>
+<style scoped>
+.filegroup {
+  height: 30px;
+  overflow: hidden;
+  position: relative;
+  padding-top: 8px;
+  text-align: left;
+}
+
+#file {
+  float: left;
+  width: 260px;
+  color: #fff;
+  height: 30px;
+  border: none;
+  line-height: 30px;
+  margin-left: 100px;
+  background: none;
+}
+
+.btn3 {
+  float: left;
+  color: #fff;
+  width: 90px;
+  height: 30px;
+  background: #4a567c;
+  border-radius: 3px;
+  position: absolute;
+  z-index: 19;
+  line-height: 30px;
+  text-align: center;
+}
+
+#terminalPageAddModel #files {
+  width: 90px;
+  height: 30px;
+  position: absolute;
+  opacity: 0;
+  z-index: 20;
+  top: 8px;
+}
+
+#terminalPageEditModel #files,
+#terminalPagebox #files {
+  width: 90px;
+  height: 30px;
+  position: absolute;
+  opacity: 0;
+  z-index: 20;
+  top: 8px;
+}
+
+.sccess {
+  color: #fff;
+  float: left;
+  width: 16px;
+  height: 16px;
+  display: none;
+  overflow: hidden;
+  line-height: 16px;
+  background: #61cd97;
+  border-radius: 50%;
+  margin-top: 7px;
+  text-align: center;
+}
+
+.scrollbox {
+  width: 1564px;
+}
+#terminalPage .zTable .elTable .list_Time {
+  width: 150px;
+}
+.upload {
+  clear: both;
+  width: 100%;
+  overflow: hidden;
+}
+
+.uploadBg {
+  width: 96%;
+  height: 44px;
+  margin: 2px 0;
+  text-align: left;
+  line-height: 44px;
+  padding-left: 10px;
+  background: #2a3558;
+  border: 1px #3b4872 solid;
+}
+
+@media screen and (max-width: 1440px) {
+  .scrollbox {
+    width: 1156px;
+  }
+}
+
+@media screen and (max-width: 1366px) {
+  .scrollbox {
+    width: 1090px;
+  }
+
+  #terminalPage .zTable {
+    padding-top: 0;
+  }
+
+  #terminalPage .elTable {
+    height: 86%;
+  }
+}
+
+/* 弹出层 */
+
+.formTable {
+  overflow: hidden;
+  padding: 2px 4px;
+  background: #4a567c;
+}
+
+.block {
+  float: left;
+  width: 50%;
+  height: 40px;
+  overflow: hidden;
+  /* border:2px #4a567c solid; */
+}
+#terminalPagebox .block img {
+  width: 20px;
+  height: 20px;
+  margin: 0 auto;
+  position: absolute;
+  top: 30%;
+}
+#terminalPagebox .block {
+  position: relative;
+}
+#terminalPagebox .block .tooltipbutton {
+  display: inline-block;
+  line-height: 0;
+  white-space: nowrap;
+  cursor: pointer;
+  color: #333;
+  -webkit-appearance: none;
+  text-align: center;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  outline: 0;
+  margin: 0;
+
+  padding: 0px 0px;
+  width: 50px;
+}
+.block .formbox {
+  height: 36px;
+  margin: 2px 0;
+  line-height: 36px;
+  border: 1px #3b4872 solid;
+}
+
+.block .blockleft {
+  margin-left: 30%;
+}
+/*  使用足够大的纯色阴影来覆盖input输入框黄色背景颜色 */
+/*  根据自己的输入框边框设置 =  */
+.passwordinput input {
+  -webkit-box-shadow: 0 0 0px 1000px white inset;
+  border: 1 px solid #666 !important;
+  -webkit-box-shadow: 0 0 0 px 1000 px white inset;
+}
+
+.infoMsg {
+  float: left;
+  line-height: 36px;
+  padding-left: 9px;
+}
+
+.checkboxBg {
+  width: 96%;
+  height: 34px;
+  margin: 2px 0;
+  line-height: 34px;
+  padding-left: 10px;
+  background: #2a3558;
+  border: 1px #3b4872 solid;
+}
+
+.textarea {
+  clear: both;
+  height: 120px;
+  overflow: hidden;
+}
+
+.textarealist {
+  height: 36px;
+}
+
+.textarealist1 {
+  height: 36px;
+  margin-top: 2px;
+}
+
+.userBtn2 {
+  overflow: hidden;
+  text-align: right;
+}
+
+.userBtn2 p {
+  height: 20px;
+  font-size: 14px;
+  line-height: 20px;
+  text-align: left;
+  padding: 10px 0 4px;
+}
+
+.userBtn2 p span {
+  color: red;
+}
+
+/* end */
+
+.paddingLeft {
+  padding-left: 20px;
+}
+
+input.el-input__inner:hover {
+  border: 1px #3b4872 solid;
+}
+
+.mRightTwo {
+  padding: 34px 42px;
+  margin: 15px 27px 15px 15px;
+  background: #354166;
+  box-shadow: 0px 0px 26px #01060e;
+}
+
+.zForm span {
+  float: left;
+  color: #eee;
+  display: block;
+  font-size: 14px;
+  overflow: hidden;
+  line-height: 36px;
+}
+
+.zTable {
+  clear: both;
+  height: 94%;
+  overflow: hidden;
+  /* overflow-x: auto; */
+  padding-top: 26px;
+}
+
+.elTable {
+  height: 91.7%;
+  overflow: hidden;
+  overflow-x: auto;
+}
+
+.zInput {
+  float: left;
+  width: 120px;
+  height: 36px;
+  font-size: 14px;
+  margin-left: 3px;
+  line-height: 36px;
+  padding-left: 14px;
+  margin-right: 20px;
+  background: #2a3558;
+  border: 1px #3b4872 solid;
+}
+
+.zForm button {
+  float: left;
+  color: #eee;
+  height: 38px;
+  font-size: 14px;
+  margin-left: 11px;
+  text-align: center;
+  line-height: 38px;
+  padding: 0px 15px;
+  background: #1b274c;
+  border: 1px #3b4872 solid;
+}
+
+.zSelect {
+  float: left;
+  width: 148px;
+}
+
+.zForm span.btnRight {
+  float: right;
+  display: inline-block;
+}
+</style>
+<style type="text/css"  lang="scss">
+.el-tooltip__popper.is-dark {
+  // width: 100%;
+  background: #303133;
+  color: #fff;
+}
+
+#terminalPagebox .butclick {
+  padding: 0px 10px;
+  background: #1b274c;
+  border: 1px #3b4872 solid;
+  margin-left: 100px;
+}
+element.style {
+  display: block;
+}
+
+#terminalPage #showtreebox {
+  /*display: none;*/
+  top: 116px;
+  left: 19%;
+  position: absolute;
+  width: 290px;
+  height: 175px;
+  z-index: 99;
+  background-color: #354166;
+  border: 2px #3b4872 solid;
+}
+
+#terminalPage #showtreebox .closedbut {
+  position: absolute;
+  bottom: 0;
+  right: 20px;
+  width: 50px;
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 10px;
+  background: #1b274c;
+  border: 1px solid #3b4872;
+  text-align: center;
+  z-index: 999;
+  cursor: pointer;
+}
+
+input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0px 1000px #ffffff inset;
+  border: 1px solid #ffffff !important;
+  background-color: #ffffff;
+}
+
+#terminalPageAddModel .submit2 {
+  float: left;
+  color: #fff;
+  width: 80px;
+  height: 30px;
+  background: #4a567c;
+  border-radius: 3px;
+  position: absolute;
+  z-index: 19;
+  line-height: 30px;
+  text-align: center;
+  margin-top: 0px;
+}
+
+#terminalPageEditModel .submit2,
+#terminalPagebox .submit2 {
+  float: left;
+  color: #fff;
+  width: 80px;
+  height: 30px;
+  background: #4a567c;
+  border-radius: 3px;
+  position: absolute;
+  z-index: 19;
+  line-height: 30px;
+  text-align: center;
+  margin-top: 0px;
+}
+
+.upload .uploadBg #uploadForm {
+  width: 45%;
+  margin-top: 0;
+}
+
+@import url("../media/lkjmedia.css");
+.TerminaLeft li {
+  margin-top: 4px;
+  font-size: 14px;
+  text-indent: 16px;
+}
+
+.TerminaLeft li:hover {
+  /*background-color: #409EFF;*/
+  background: #57e29b;
+  color: #fff;
+}
+
+.TerminaLeft li:focus {
+  background-color: #57e29b;
+  /* background: #57e29b; */
+  color: #fff;
+}
+
+.TerminaRight .el-input .el-input__inner {
+  height: 28px;
+  width: 200px;
+}
+
+.TerminaLeft,
+.TerminaRight {
+  background-color: #1b274c;
+  width: 200px;
+  float: left;
+  height: 340px;
+  overflow-y: auto;
+}
+
+.TerminaRight {
+  width: 410px;
+  border-left: 2px #4a567c solid;
+}
+
+#TerminaInformationPopup .el-dialog {
+  width: 660px;
+  height: 500px;
+  /*top: 50%;*/
+}
+
+#terminalPageAddModel .el-dialog {
+  width: 1100px;
+  top: 40%;
+}
+
+#terminalPageAddModel .el-dialog__body {
+  padding: 24px 24px 18px;
+}
+
+#terminalPageAddModel .el-checkbox {
+  float: left;
+}
+
+#terminalPageEditModel .el-dialog {
+  width: 1100px;
+  top: 40%;
+}
+#terminalPagebox .el-dialog {
+  width: 1100px;
+  top: 40%;
+}
+#terminalPageEditModel .el-dialog__body {
+  padding: 24px 24px 18px;
+}
+
+#terminalPageEditModel .el-checkbox {
+  float: left;
+}
+#terminalPagebox .el-dialog__body {
+  padding: 24px 24px 18px;
+}
+
+#terminalPagebox .el-checkbox {
+  float: left;
+}
+.textarealist .el-form-item__label,
+.textarealist .el-input__inner,
+.textarealist1 .el-form-item__label,
+.textarealist1 .el-input__inner,
+.textarea .el-input__inner,
+.block .el-form-item__label,
+.block .el-input__inner,
+.textarea .el-form-item__label,
+.upload .el-input__inner {
+  height: 36px;
+  margin: 2px 0;
+  line-height: 36px;
+  border: 1px #3b4872 solid;
+}
+
+.upload .el-form-item__label {
+  width: 18.2% !important;
+  height: 46px;
+  margin: 2px 0;
+  line-height: 46px;
+  /* background: #2a3558; */
+  border: 1px #3b4872 solid;
+}
+
+.upload .el-form-item__content {
+  width: 84%;
+  margin-left: 18.2% !important;
+}
+
+#terminalPageAddModel .block .el-form-item__label {
+  background: #1b274c;
+}
+
+#terminalPageAddModel .el-dialog .textarea .el-form-item__label {
+  height: 120px;
+  background: #1b274c;
+}
+
+#terminalPageAddModel .upload .el-form-item {
+  width: 95.5%;
+}
+
+#terminalPageAddModel .el-form-item {
+  margin: 0;
+  padding: 0;
+  width: 91%;
+  float: left;
+}
+
+#terminalPageAddModel .userBtn2 .el-form-item {
+  width: 100%;
+}
+
+#terminalPageAddModel .el-textarea {
+  width: 106.2%;
+}
+
+/*lkj7-4*/
+#terminalPageEditModel .block .el-form-item__label {
+  background: #1b274c;
+}
+
+#terminalPageEditModel .el-dialog .textarea .el-form-item__label {
+  height: 120px;
+  background: #1b274c;
+}
+
+#terminalPageEditModel .upload .el-form-item {
+  width: 95.5%;
+}
+
+#terminalPageEditModel .el-form-item {
+  margin: 0;
+  padding: 0;
+  width: 91%;
+  float: left;
+}
+
+#terminalPageEditModel .userBtn2 .el-form-item {
+  width: 100%;
+}
+
+#terminalPageEditModel .el-textarea {
+  width: 106.2%;
+}
+/*lkj7-4*/
+#terminalPagebox .block .el-form-item__label {
+  background: #1b274c;
+}
+
+#terminalPagebox .el-dialog .textarea .el-form-item__label {
+  height: 120px;
+  background: #1b274c;
+}
+
+#terminalPagebox .upload .el-form-item {
+  width: 95.5%;
+}
+
+#terminalPagebox .el-form-item {
+  margin: 0;
+  padding: 0;
+  width: 91%;
+  float: left;
+}
+
+#terminalPagebox .userBtn2 .el-form-item {
+  width: 100%;
+}
+
+#terminalPagebox .el-textarea {
+  width: 106.2%;
+}
+
+.textarea .el-textarea__inner {
+  height: 120px;
+  margin: 2px 0;
+  line-height: 22px;
+  background: #2a3558;
+  border: 1px #3b4872 solid;
+  border-radius: 0;
+}
+
+.el-date-editor.el-input {
+  width: 100%;
+}
+
+.el-select {
+  width: 100%;
+}
+
+.el-textarea {
+  float: left;
+  width: 92.2%;
+}
+
+.el-dialog__header span {
+  padding-left: 38px;
+  height: 38px;
+  display: inline-block;
+  background: url(../../assets/modeIco.png) no-repeat;
+}
+
+::-webkit-scrollbar {
+  width: 12px;
+  /*滚动条宽度*/
+  height: 12px;
+  /*滚动条高度*/
+}
+
+::-webkit-scrollbar-track {
+  border-radius: 5px;
+  /*滚动条的背景区域的圆角*/
+  background-color: #222d50;
+  /*滚动条的背景颜色*/
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 5px;
+  /*滚动条的圆角*/
+  background-color: #4f5c84;
+  /*滚动条的背景颜色*/
+}
+
+#terminalPage .el-progress {
+  float: left;
+  margin: 8px 0 0 102px;
+  width: 257px;
+}
+
+#terminalPage .el-progress-bar__outer {
+  height: 10px !important;
+}
+</style>

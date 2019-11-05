@@ -1,0 +1,21 @@
+import request from './request';
+import qs from "qs";
+
+// 发布分享
+// /admin/api/v1/share_circle_management/share/publish
+export function sharePublish(data) {
+    return request({
+        url: '/admin/api/v1/share_circle_management/share/publish',
+        method: 'post',
+        data: data
+    })
+}
+// 可见人映射
+// /admin/api/v1/share_circle_management/share/get_visibility_map
+export function shareGetvisibilityMap(data) {
+    return request({
+        url: '/admin/api/v1/share_circle_management/share/get_visibility_map',
+        method: 'post',
+        data: data
+    })
+}

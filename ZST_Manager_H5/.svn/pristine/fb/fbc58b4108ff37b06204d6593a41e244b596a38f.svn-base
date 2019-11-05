@@ -1,0 +1,427 @@
+<template>
+	<div id="usercheck" class="mRight">
+		<div class="usercheckList">
+			<div class="zForm">
+				<span class="paddingLeft">姓名或手机号： </span>
+				<input v-model="enterprise_user_name_or_phonenum" class="zInput" type="text" placeholder="" />
+				<span class="paddingLeft">地区： </span>
+				<input v-model="region_name"  class="zInput" type="text" placeholder="" />
+				<span class="paddingLeft">工作单位： </span>
+				<input v-model="depart_name"  class="zInput" type="text" placeholder="" />
+                <div class="onlyLine">
+                    <span class="paddingLeft">审核类型：</span>
+                    <div class="zSelect">
+                        <el-select v-model="userChecktypevalue" class="zgroup" placeholder="--请选择--">
+                            <el-option v-for="item in userChecktype" 
+                            :key="item.id" :label="item.name" :value="item.id"></el-option>
+                        </el-select>
+                    </div>
+                    <span class="paddingLeft">审核状态：</span>
+                    <div class="zSelect">
+                        <el-select v-model="userCheckstatevalue" class="zgroup" placeholder="--请选择--">
+                            <el-option v-for="item in userCheckstate" 
+                            :key="item.id" :label="item.name" :value="item.id"></el-option>
+                        </el-select>
+                    </div>
+                    <button class="buttonradius" @click="findDatalist">查询</button>
+				    <button class="buttonradius" @click="clearDatalist">清空</button>
+                </div>
+			</div>
+			<!-- table  -->
+			<div class="zTable">
+				<div class="elTable">
+					<div class="scrollbox">
+						<el-table
+						:data="usercheckData"
+						>
+							<el-table-column prop="fixedSort" label="序号"></el-table-column>
+							<el-table-column prop="realname" label="用户姓名"></el-table-column>
+							<el-table-column prop="phonenum" label="手机号"></el-table-column>
+							<el-table-column prop="" label="头像">
+								<template slot-scope="scope">
+									<img :src="imgUrl + '/' + scope.row.avatar_url" alt="" style="width: 30px;height: 30px">
+								</template>
+							</el-table-column>
+							<el-table-column prop="sex" label="性别"></el-table-column>
+							<el-table-column prop="region_name" label="地区"></el-table-column>
+							<el-table-column prop="depart_name" label="工作单位"></el-table-column>
+							<el-table-column prop="job_title_name" label="职务"></el-table-column>
+							<el-table-column prop="event_type_description" label="审核类型"></el-table-column>
+							<el-table-column prop="" label="申请时间">
+								<template slot-scope="scope">
+									<span>{{scope.row.apply_time | FormatDate('yyyy-MM-dd hh:mm:ss') }}</span>
+								</template>
+							</el-table-column>
+							<el-table-column prop="event_status_description" label="审核状态"></el-table-column>
+							
+							<el-table-column prop="" label="操作" >
+								<template slot-scope="scope">
+									<div v-if='scope.row.event_status == "NEW"'>
+										<span class="spanBtn" @click="passClick(scope.row,true)">通过</span>
+										<span class="spanBtn" @click="rejectedClick(scope.row,false)">驳回</span>
+										<span class="spanBtn" @click="detailClick(scope.row)">详情</span>
+									</div>
+									<div v-else>
+										<span class="spanBtn" @click="detailClick(scope.row)">详情</span>
+									</div>
+								</template>
+							</el-table-column>
+						</el-table>
+					</div>
+                    <!-- page -->
+                   	<el-pagination
+						@current-change="handleCurrentChange" 
+						:current-page.sync="page_total_pages" 
+						:page-size="page_size" 
+						layout="total, prev, pager, next, jumper" 
+						:total="page_total_items"
+						class="zPage"
+						>
+					</el-pagination>
+				</div>
+			</div>
+		</div>
+        <!-- 详情弹窗 -->
+		<el-dialog  title="申请详情" 
+			:visible.sync="detailPop"
+			id="zDialogtext"
+		 	width="30%">
+			<div class="block">
+				<li>
+					<span class="liL">用户姓名</span>
+					<span class="liR">{{this.detailPopdata.realname}}</span>
+				</li>
+				<li>
+					<span class="liL">手机号</span>
+					<span class="liR">{{this.detailPopdata.phonenum}}</span>
+				</li>
+				<li>
+					<span class="liL imgCont">头像</span>
+					<span class="liR imgCont" >
+					<img :src="imgUrl + '/' + this.detailPopdata.avatar_url" alt="">
+					</span>
+				</li>
+                <li>
+					<span class="liL">性别</span>
+					<span class="liR">{{this.detailPopdata.sex}}</span>
+				</li>
+                <li>
+					<span class="liL">审核类型</span>
+					<span class="liR">{{this.detailPopdata.event_type_description}}</span>
+				</li>
+				<li>
+					<span class="liL">审核状态</span>
+					<span class="liR">{{this.detailPopdata.event_status_description}}</span>
+				</li>
+				<li class="reason">
+					<span class="liL">驳回原因</span>
+					<span class="liR">{{this.detailPopdata.event_reject_reason}}</span>
+				</li>
+                
+			</div>
+			<div class="userBtn">
+				<el-button size="small" @click="detailPop = false">关闭</el-button>
+			</div>
+		</el-dialog>
+        <!-- 通过弹窗 -->
+        <div id="commonPop">
+            <tabTree  ref="tabTreemark" :assignPopchild='assignPopchild' :assignPopeditData='assignPopeditData' @assignPopclose='closePop'></tabTree>
+        </div>
+		<div id="commonPop">
+			 <el-dialog  title="驳回原因" 
+                :visible.sync="rejectedPop"
+                :before-close="cancelRejectedpop"
+				:close-on-click-modal='false'
+                width="50%">
+                <el-form  ref="edit" label-width="30%" class="demo-ruleForm">
+                    <div class="formTable">
+						<div class="block" style="margin-top: 20px;">
+							<textarea style="padding:0;" v-model='event_reject_reason' class="textarea" placeholder="请输入驳回原因"></textarea>
+						</div>
+					</div>
+					<div class="userBtn">
+						<el-form-item>
+							<el-button type="primary" @click="submittingBy">保存</el-button>
+							<el-button @click="clearSbumittingby">取消</el-button>
+						</el-form-item>
+					</div>
+                </el-form>
+            </el-dialog>
+		</div>
+	</div>
+</template>
+<script>
+	import $ from "jquery";
+	import axios from "axios";
+	
+	  // tabTree
+	import tabTree from '../../components/tabTree'
+	
+    /* 展示弹窗样式文件 */
+    import '../../style/common.css' /*引入公共样式*/
+	// js
+	import {heightAuto} from '../../untils/heightAuto' //注意路径
+
+	/* api */
+	// applyEventlist 获取所有数据
+	// userCheckapplyEventreject  驳回企业用户申请事件
+	// applyEventapprove  通过企业用户注册申请事件
+	// applyEventlistEnterprisegroups  列出企业权限组
+
+	import {
+		applyEventlist,applyEventlistType,applyEventlistState,
+		userCheckapplyEventreject,applyEventapprove,applyEventlistEnterprisegroups
+		} from '../../api/usercheck'
+
+	export default {
+        data() {
+			return {
+				imgUrl : window.ServerUrl,
+				depart_name : '',	// 单位名称
+				enterprise_user_name_or_phonenum : '',	// 姓名／手机号
+				region_name : '',	//地区
+				usercheckData : [],
+				userCheckdataTable :[],
+				// 状态数组
+				userCheckstate : [],
+				userCheckstatevalue : '',
+				// 状态
+				userChecktype : [],
+				userChecktypevalue : '',
+				// 通过缓存数据
+				passPopdetail : '',
+				// 通过弹窗数据
+				bySubmittingdata : {},
+				listEnterprisegroupsdata : [],
+				listEnterprisegroupsvalue : '',
+				isAdmin : '1',
+				// 驳回原因
+				event_reject_reason : '',
+				/* 分页相关 */
+				page_size : 10,			//  请求多少条目
+				page_total_items : 10,  // 总条数
+				page_total_pages : 1,  //  当前条数
+				/* 详情 */
+                detailPop : false,
+                /* 通过 */
+				passPop : false,
+				passForm : {
+                    mediaServerName: "请选择",
+                    radio : false,
+				},
+				// 弹窗显示内容 判断	默认驳回
+				isRejected : true,
+				popTitle : '驳回',
+				// 详情数据
+				detailPopdata : {},
+				 /* 权限弹窗 */
+                assignPopchild : false,
+                pageSource : "USETLIST",
+				assignPopeditData : {},
+				// 驳回
+				rejectedPop : false,
+				/* 分页相关 */
+				page_size : 10,			//  请求多少条目
+				page_total_items : 10,  // 总条数
+				page_total_pages : 1,  //  当前条数
+			}
+		},
+        components: {
+            tabTree
+        },
+		methods:{
+			// 数据初始化 table
+			getInitlistData(){
+				let  objData = this.sortingData();
+				applyEventlist(objData).then(res => {
+					if (res.status === 200 && res.data.result == "ok") {
+						this.usercheckData = res.data.data.list;
+						
+						this.usercheckData.map(function(item,index){
+							item.fixedSort = index - 0 + 1;
+						})
+						console.log(this.usercheckData);
+						/* 总条数 */
+						this.page_total_items = res.data.data.page_total_items; 
+						this.page_total_pages = res.data.data.page_number - 0 + 1;
+					}
+				});	
+			},	
+			// 整理 查询数据
+			sortingData(){
+				let  objData = {
+					"enterprise_id": localStorage.EnterpriseId,
+					"enterprise_user_id": localStorage.userId,
+					"page_number": this.page_total_pages - 1,
+					"page_size": 10
+				}
+				if(this.depart_name != ''){
+					objData.depart_name = this.depart_name;
+				}
+				if(this.enterprise_user_name_or_phonenum != ''){
+					objData.enterprise_user_name_or_phonenum = this.enterprise_user_name_or_phonenum;
+				}
+				if(this.region_name != ''){
+					objData.region_name = this.region_name;
+				}
+				if(this.userCheckstatevalue != ''){
+					objData.event_status = this.userCheckstatevalue;
+				}
+				if(this.userChecktypevalue != ''){
+					objData.event_type = this.userChecktypevalue;
+				}
+				return objData;
+
+			},
+			// 状态
+			getInitdataState(){
+				// applyEventlistState
+				applyEventlistState({}).then(res => {
+					if (res.status === 200 && res.data.result == "ok") {
+						this.userCheckstate = res.data.data
+					}
+				});	
+			},
+			// 类型
+			getInitdataType(){
+				//  applyEventlistType
+				applyEventlistType({}).then(res => {
+					if (res.status === 200 && res.data.result == "ok") {
+						this.userChecktype = res.data.data
+					}
+				});	
+			},
+			// 查询
+			findDatalist(){
+				// 初始化 页面1
+				this.page_total_pages = 1;
+				this.getInitlistData();
+			},
+			// 清空
+			clearDatalist(){
+				this.depart_name = '';
+				this.enterprise_user_name_or_phonenum = '';
+				this.region_name = '';
+				this.userCheckstatevalue = '';
+				this.userChecktypevalue = '';
+				// 初始化 页面1
+				this.page_total_pages = 1;
+				// 清空查询
+				this.getInitlistData();
+			},
+			// 列表 通过按钮
+			passClick(scope){
+				// 
+				console.log(scope);
+
+				this.assignPopchild = true;
+				// 传入组件数据
+				this.assignPopeditData = {
+					realname : scope.realname
+				}
+				// 告知子组件页面来源 加载对应数据
+				this.$refs.tabTreemark.distinguishPagesources('USERCHECK')
+
+				// ajax 初始化 弹窗 权限列表
+				// enterprise_apply_event_id 事件id
+				/* let objData = {
+					"enterprise_apply_event_id" : scope.enterprise_apply_event_id
+				}
+				applyEventlistEnterprisegroups(objData).then(res => {
+					if (res.status === 200 && res.data.result == "ok") {
+						this.listEnterprisegroupsdata = res.data.data
+
+					}
+				});	 */
+			},
+			//	 关闭 通过弹窗
+            closePop(data){
+                this.assignPopchild = false;
+            },
+			// 列表 驳回事件
+			rejectedClick(scope){
+				console.log('驳回')
+				this.rejectedPop = true;
+			},
+			cancelRejectedpop(){
+				console.log('关闭驳回弹出')
+			},
+			// 通过/ 驳回弹窗 提交按钮
+			submittingBy(){
+				// 驳回 userCheckapplyEventreject
+				let objData = {
+					"enterprise_apply_event_id": this.passPopdetail.enterprise_apply_event_id,
+					"event_reject_reason": this.event_reject_reason,
+					"processor_id": localStorage.userId
+				}
+				
+				userCheckapplyEventreject(objData).then(res => {
+					if (res.status === 200 && res.data.result == "ok") {
+						this.$message.success('驳回成功')
+
+						this.getInitlistData();
+						// 清空通过数据
+						this.clearPassdata();
+					}
+				});	
+			},
+			// 清除数据
+			clearSbumittingby(){
+				this.clearPassdata();
+			},
+			clearPassdata(){
+				this.passPop = false;
+				this.listEnterprisegroupsvalue = '';
+				this.isAdmin = '1';
+				this.event_reject_reason = '';
+			},
+			// page
+			handleCurrentChange(currentPage) {
+				this.page_total_pages = currentPage;
+				this.getInitlistData();
+			},
+			// 详情
+            detailClick(scope){
+				console.log(scope);
+				this.detailPop = true;
+				this.detailPopdata = scope;
+            },
+		},
+		mounted: function() {
+			let row = '.usercheckList'
+			heightAuto(row)
+			// 初始化
+			this.getInitlistData();
+			this.getInitdataState();
+			this.getInitdataType();
+		},
+	}
+	
+</script>
+<style scoped>
+.popInput{
+	width: 100%;
+    height: 36px;
+    font-size: 14px;
+    margin-left: 10px;
+    line-height: 36px;
+    padding-left: 4px !important;
+    margin-right: 20px;
+    background: #2a3558;
+    border: 1px #3b4872 solid;
+	text-indent: 1em;
+}
+.spanBtn{
+	cursor: pointer;
+	margin: 0 5px;
+}
+.onlyLine{
+    display: inline-block;
+    margin-top: 20px;
+}
+.block{
+	width: 100%;
+}
+</style>
+
+<style lang="scss">

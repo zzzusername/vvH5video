@@ -1,0 +1,318 @@
+	/*.mRightTwo .zForm .btnLeft{
+		margin-left: 0px;
+	}*/
+	/*.mRight .zForm{
+	overflow: hidden;
+}*/
+
+	@media screen and (max-width: 1800px) {
+		.elTable {
+			height: 89% !important; 
+		}
+	}
+
+	@media screen and (max-width: 1440px) {
+		.mRight .el-table .cell,
+		.mRight .el-table th div,
+		.mRight .el-table--border td:first-child .cell,
+		.mRight .el-table--border th:first-child .cell {
+			padding-left: 5px
+		}
+		.mRight .el-table .cell,
+		.mRight .el-table th div {
+			padding-right: 5px;
+			overflow: hidden;
+			text-overflow: ellipsis
+		}
+		.mRight .el-table .cell,
+		.mRight .el-table th div {
+			padding-right: 5px;
+			overflow: hidden;
+			text-overflow: ellipsis
+		}
+		.mRightTwo[data-v-409c2d02] {
+			padding: 34px 30px;
+			margin: 15px 27px 15px 15px;
+			background: #354166;
+			-webkit-box-shadow: 0px 0px 26px #01060e;
+			box-shadow: 0px 0px 26px #01060e;
+		}
+		.mRight {
+			width: 89%;
+			/* width: 1739px; */
+			padding: 12px 0px 0px 12px;
+		}
+	}
+
+
+
+	@media screen and (max-width: 1440px) {
+		.zmainBox .systemtable {
+			margin: 20px auto;
+		}
+		.mRightTree .zmainBox h3 {
+			color: #fff;
+			height: 40px;
+			font-size: 16px;
+			line-height: 40px;
+			padding-left: 20px;
+			font-weight: normal;
+			padding-right: 36px;
+		}
+		.mRight .el-table .cell,
+		.mRight .el-table th div,
+		.mRight .el-table--border td:first-child .cell,
+		.mRight .el-table--border th:first-child .cell {
+			padding-left: 5px
+		}
+		.mRight .el-table .cell,
+		.mRight .el-table th div {
+			padding-right: 5px;
+			overflow: hidden;
+			text-overflow: clip
+		}
+		.mRightTwo[data-v-409c2d02] {
+			padding: 34px 30px;
+			margin: 15px 27px 15px 15px;
+			background: #354166;
+			-webkit-box-shadow: 0px 0px 26px #01060e;
+			box-shadow: 0px 0px 26px #01060e;
+		}
+		.mRight {
+			width: 89%;
+			/* width: 1739px; */
+			padding: 12px 0px 0px 12px;
+		}
+		.timeBox .el-input__icon {
+			line-height: 30px;
+		}
+		.mRight .zForm {
+			padding-bottom: 30px;
+			width: 100%;
+		}
+		.systemtable li {
+			height: 25px;
+			line-height: 25px;
+		}
+		.el-table td {
+			padding: 4px 0;
+		}
+		.mRightTwo .elTable {
+			height: 83%;
+		}
+		.mRightTwo .zTable {
+			height: 89%;
+			/* LKJ */
+		}
+		.mRightTwo .zForm span {
+			height: 30px;
+			line-height: 30px;
+			font-size: 12px;
+		}
+		.el-submenu__title {
+			font-size: 12px;
+		}
+		.el-submenu__title {
+			height: 30px;
+			line-height: 30px
+		}
+		.el-table .cell {
+			font-size: 12px;
+		}
+		.zForm .timeBox {
+			width: 192px;
+			height: 30px;
+			line-height: 30px;
+		}
+		.zForm .zSelect {
+			width: 100px;
+			height: 30px;
+			line-height: 30px;
+		}
+		.zForm .zInput {
+			height: 28px;
+			line-height: 28px;
+			width: 100px;
+			padding-left: 0;
+		}
+		.timeBox .el-date-editor.el-input {
+			width: 192px
+		}
+		.elTable {
+			height: 90%;
+			overflow: hidden;
+		}
+		.mRightTwo .zForm button,
+		.mRightThree .zForm button {
+			float: left;
+			color: #eee;
+			height: 30px;
+			font-size: 11px;
+			margin-left: 8px;
+			text-align: center;
+			line-height: 30px;
+			/*	padding: 0px 10px;*/
+			background: #1b274c;	
+			border: 1px #3b4872 solid;
+		}
+		.zForm {
+			padding-bottom: 58px;
+		}
+	}
+
+	@media screen and (max-width: 1440px) and (max-height: 900px) {
+		#hBar {
+			width: 90%;
+			margin: 0 auto;
+			height: 320px;
+		}
+	}
+
+	@media screen and (max-width: 1366px) {
+		.el-dialog__header span {
+			padding-left: 30px;
+			height: 30px;
+			font-size: 14px;
+		}
+		#hBar {
+			height: 250px;
+		}
+		.terminalEditModel .el-dialog__headerbtn {
+			position: absolute;
+			top: 10px;
+		}
+		.el-dialog__header {
+			padding: 5px 10px 0px;
+		}
+		.terminalEditModel .el-dialog__title {
+			line-height: 30px;
+			font-size: 14px;
+			color: #fff;
+		}
+		.zmainBox .systemtable {
+			margin: 20px auto;
+		}
+		.mRightTree .zmainBox h3 {
+			color: #fff;
+			height: 40px;
+			font-size: 16px;
+			line-height: 40px;
+			padding-left: 20px;
+			font-weight: normal;
+			padding-right: 36px;
+		}
+		.mRight .el-table .cell,
+		.mRight .el-table th div,
+		.mRight .el-table--border td:first-child .cell,
+		.mRight .el-table--border th:first-child .cell {
+			padding-left: 5px
+		}
+		.mRight .el-table .cell,
+		.mRight .el-table th div {
+			padding-right: 0px;
+			overflow: hidden;
+			text-overflow: clip;
+		}
+		.mRightTwo{
+			padding: 34px 30px;
+			margin: 15px 27px 15px 15px;
+			background: #354166;
+			-webkit-box-shadow: 0px 0px 26px #01060e;
+			box-shadow: 0px 0px 26px #01060e;
+		}
+		.mRight {
+			width: 89%;
+			/* width: 1739px; */
+			padding: 12px 0px 0px 12px;
+		}
+		.timeBox .el-input__icon {
+			line-height: 30px;
+		}
+		.mRight .zForm {
+			width: 1089px;
+			padding-bottom: 15px;
+		}
+		.systemtable li {
+			height: 25px;
+			line-height: 25px;
+		}
+		.el-table td {
+			padding:4px 0;
+		}
+		.mRightTwo .elTable {
+			height: 87%;
+		}
+		#zboxRight .elTable {
+			height: 82.5%;
+		}
+		.mRightTwo .zTable {
+			/*width: 1089px;*/
+      min-width: 76%;
+			height: 89%;
+		}
+    .wrapper .zboxRight {
+      float: left;
+      min-width: 76%;
+      padding: 0;
+      width: 820px;
+    }
+		.mRightTwo .zForm span {
+			height: 30px;
+			line-height: 30px;
+			font-size: 12px;
+		}
+		.el-submenu__title {
+			font-size: 12px;
+		}
+		.el-submenu__title {
+			height: 30px;
+			line-height: 30px
+		}
+		.el-table .cell {
+			font-size: 12px;
+		}
+		.zForm .timeBox {
+			width: 192px;
+			height: 30px;
+			line-height: 30px;
+		}
+		.zForm .zSelect {
+			width: 100px;
+			height: 30px;
+			line-height: 30px;
+		}
+		.zForm .zInput {
+			height: 28px;
+			line-height: 28px;
+			width: 100px;
+			padding-left: 0;
+		}
+		.timeBox .el-date-editor.el-input {
+			width: 192px
+		}
+		.elTable {
+			height: 90%;
+			overflow: hidden;
+		}
+		.mRightTwo .zForm button,
+		.mRightThree .zForm button {
+			float: left;
+			color: #eee;
+			height: 30px;
+			font-size: 11px;
+			margin-left: 8px;
+			text-align: center;
+			line-height: 30px;
+				padding: 0px 10px;
+			background: #1b274c;
+			border: 1px #3b4872 solid;
+		}
+		.zForm {
+			padding-bottom: 58px;
+		}
+	}
+	
+	.upload .uploadBg #uploadForm {
+		width: 45%;
+		margin-top:0;
+	}

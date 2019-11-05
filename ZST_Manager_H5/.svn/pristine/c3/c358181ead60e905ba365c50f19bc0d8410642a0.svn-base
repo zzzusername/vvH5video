@@ -1,0 +1,763 @@
+<template>
+	<el-dialog  title="权限分配" 
+		:visible.sync="assignPopchild"
+		:before-close="cancelNewdata"
+		:close-on-click-modal='false'
+		width="55%">
+		<el-form  ref="edit" label-width="44%" class="demo-ruleForm">
+			{{gainFromparentPath}}
+			<div class="formTable">
+				<div class="block block-line">
+					<el-form-item label="姓名：" :rules="[{ required: true, message: ' '}]">
+						<el-input v-model="gainFromparentData.realname" maxlength="50"></el-input>
+					</el-form-item>
+				</div>  
+				<div class="block block-line">
+					<el-form-item label="用户类型：" :rules="[{ required: true, message: ' '}]">
+						<el-select v-model="prisegRoupsvalue"  placeholder="--请选择--">
+							<el-option v-for="item in prisegRoupsdata" 
+							:key="item.index" :label="item.name" :value="item.type"></el-option>
+						</el-select>
+					</el-form-item>
+				</div>
+				<div class="block block-line">
+					<el-form-item label="权限分配方式：" :rules="[{ required: true, message: ' '}]">
+						
+						<div class="checkboxBg">
+							<el-radio-group v-model="addForm.permissionAllocationmode" @change="permissionModechange">
+								<el-radio label="1">权限分组</el-radio>
+								<el-radio label="2">直接分配</el-radio>
+							</el-radio-group>
+						</div>
+					</el-form-item>
+				</div>
+				<div class="block block-line">
+					<el-form-item label="权限分组：" :rules="[{ required: true, message: ' '}]">
+						<el-select v-model="rightsGroupvalue"  placeholder="--请选择--">
+							<el-option v-for="item in rightsGroupdata" 
+							:key="item.index" :label="item.name" :value="item.type"></el-option>
+						</el-select>
+					</el-form-item>
+				</div>
+				<div class="block" id="streamingMedia">
+					<el-form-item label="指定流媒体服务器：" label-width="22%" :rules="[{ required: true, message: ' '}]">
+						<el-select v-model="streamingMediavalue"
+								placeholder="请选择" class="tabSelect" 
+								multiple
+								@change="streamingMediachange" 
+								>
+								<el-option
+								v-for="item in streamingMediadata"
+								:key="item.server_code"
+								:label="item.server_name"
+								:value="item.server_code"
+								>
+								</el-option>
+						</el-select>
+					</el-form-item>
+				</div>
+				<div id="tabChagecont"
+					v-loading="tabLoading"
+					element-loading-text="加载中"
+					element-loading-spinner="el-icon-loading"
+					element-loading-background="initial"
+					style="overflow:hidden;"
+					v-if="allocationType"
+					>
+					<!-- 监控 ／ 终端 tab切换-->
+					<el-tabs v-model="activeName" 
+						type="border-card" 
+						style="padding:0 10px;">
+						<el-tab-pane label="功能分配：" name="first"  class="tabSelectpane">
+							<el-checkbox-group v-model="permissionsListvalue">
+								<el-checkbox 
+								v-for="item in permissionsList" :key="item.index"
+								:label="item.name"
+								>{{item.comment}}</el-checkbox>
+							</el-checkbox-group>
+						</el-tab-pane>
+						<el-tab-pane label="监控资源分配：" name="second"  class="tabSelectpane">
+							<div class="tabCont">
+								<div class="hd monitorResourceshd">
+									<span>监控地址：</span>
+									<el-select v-model="monitorTheaddressValue"  placeholder="--请选择--" class="monitorResourcesSelect" @change='monitorAddresschange'>
+										<el-option v-for="item in monitorTheaddressData" 
+										:key="item.index" :label="item.name" :value="item.value"></el-option>
+									</el-select>
+								</div>
+								<div class="bd">
+									<!-- 
+										
+										:load="monitorTherootDirectoryLoadnode"
+										@check-change='monitorCheckchangdata'
+										:default-checked-keys="this.monitorDefaultchecked"
+										lazy=''
+									 -->
+									<div class="hd-l">
+										<el-tree
+										:props="props"
+										:data="monitor_resource_organizations"
+										:load="monitorTherootDirectoryLoadnode"
+										:render-content="renderMonitor"
+										ref="monitorTree"
+										node-key="unique_code"
+										show-checkbox
+										lazy=''
+										>
+										</el-tree>
+									</div>
+								</div>
+							</div>
+						</el-tab-pane>
+						<el-tab-pane label="终端通讯录分配：" name="three"  class="tabSelectpane">
+							<div class="tabCont">
+								<div class="hd">
+									<span>终端通讯录分配目录</span>
+									<el-button size="small" class="clear" @click="clearTerminatree">清空</el-button>
+								</div>
+								<div class="bd">
+									<div class="hd-l">
+										<el-tree
+											:props="props"
+											:data="terminal_regions"
+											:load="terminaLoadnode"
+											:render-content="renderContent"
+											ref="terminaTree"
+											node-key="unique_code"
+											@check-change='termianCheckchangdata'
+											:default-checked-keys="this.terminalDefaultchecked"
+											lazy=''
+											show-checkbox>
+										</el-tree>
+									</div>
+								</div>
+							</div>
+						</el-tab-pane>
+					</el-tabs>
+				</div>
+			</div>
+			<div class="userBtn">
+				<el-form-item>
+					<el-button type="primary" @click="childSavedata">保存</el-button>
+					<el-button @click="cancelNewdata()">取消</el-button>
+				</el-form-item>
+			</div>
+		</el-form>
+	</el-dialog>
+</template>
+<script>  
+import {listAllocablefunctions,
+		listRootterminalRegionpath,
+		listSubterminalRegionsandDeparts,
+		listSuborganizations,
+		} from '../api/authority'
+
+import {heightAuto,arrayObjdeweighting} from '../untils/heightAuto' //注意路径
+export default {
+	props : {
+		assignPopchild : Boolean,
+		assignPopeditData : Object,
+		pageSource : String,
+	},
+  	data: function() {
+		return {
+			// 来源父组件编辑数据
+			gainFromparentData : this.assignPopeditData,
+			gainFromparentPath : this.pageSource,
+			props: {
+				label: 'name',
+				children: 'children',
+			},
+			tabLoading : false,
+			// tab 是否可编辑
+			allocationType : false,
+			// tab 切换
+			activeName: "first",
+			// 编辑数据集合
+			addForm : {
+				realname : '姓名',
+				permissionAllocationmode : '1',
+			},
+			// 用户类型
+			prisegRoupsdata : [
+				{	
+					name: "普通用户",
+					type : 'AVERAGE',
+				},
+				{	
+					name: "地区管理员",
+					type : 'REGIONAL',
+				},
+				{	
+					name: "超级管理员",
+					type : 'SUPER',
+				},
+			],
+			prisegRoupsvalue : 'AVERAGE',
+			// 权限分组
+			rightsGroupdata : [
+				{	
+					name: "权限组1",
+					type : '1',
+				},
+				{	
+					name: "权限组2",
+					type : '2',
+				},
+			],
+			rightsGroupvalue : '',
+			permissionsList : [],
+			permissionsListvalue : [],
+			// 流媒体 服务器
+			streamingMediadata : [
+				{
+					server_code: "11135436292046327808",
+					server_name: "流媒体服务器1"
+				},
+				{
+					server_code: "11135436292046327809",
+					server_name: "流媒体服务器2"
+				}
+			],
+			streamingMediavalue: [],
+			// 监控地址
+			monitorTheaddressData : [
+				{
+					name : 'IP地址1-河北',
+					value : '1'
+				},
+				{
+					name : 'IP地址2-石家庄',
+					value : '2'
+				},
+			],
+			monitorTheaddressValue : '1',
+			monitorTheaddressValueCopy : '1',
+			monitor_resource_organizations : [
+				{
+					area_code: "13",
+					fault_count: 0,
+					health_count: 0,
+					name: "河北",
+					online_count: 0,
+					parent_code: "0",
+					platform_id: 1,
+					secrecy_count: 0,
+					security: false,
+					total_count: 7,
+					unique_code: "13_1",
+				}
+			],
+			/* 监控数据 */
+
+			monitorDefaultchecked : [],
+			/* 终端数据 */
+			// tab 终端 初始化根节点数据
+			terminal_regions : [
+				{
+					id: "202e25ef-9e2b-431a-a9b8-cd1df58696ed",
+					name: "长春市",
+					region_code: "220100000000",
+					region_full_code: "|220000000000|220100000000|",
+					region_full_name: "|吉林省|长春市|",
+					region_name: "长春市",
+					unique_code: "220100000000"
+				}
+			],
+			// tab 终端 默认勾选 通过 key 设置
+			terminalDefaultchecked : [],	
+			// copy 终端数据
+			terminalDefaultcheckedCopy   : [],
+			props: {
+				label: 'name',
+				children: 'children',
+			},
+			// 缓存 终端 懒加载信息
+			termainNode : {},
+			termainResolve : '',
+			/* 终端数据 */
+			// 弹窗按钮保存状态 
+			saveSubmittype : true,
+		};
+	},
+	/* mounted : function(){
+		console.log('根据页面来源调用相应的 api 接口  获取分配权限相应数据');
+	}, */
+	methods:{
+		// 数据来源判断
+		distinguishPagesources: function (path) {
+			console.log('页面来源' + path);
+			// 根据来源 初始化接口地址
+			this.getInitpermissionsdata();
+			// 终端 初始化接口
+			this.getTerminalrootNodedirectory();
+
+		},
+		// 初始化权限数据
+		getInitpermissionsdata(){
+			console.log('权限接口');
+			// 查询接口
+			listAllocablefunctions({  "enterprise_id": localStorage.EnterpriseId}).then(res => {
+				if (res.status === 200 && res.data.result == "ok") {
+					this.permissionsList = res.data.data;
+				}else{
+					// 错误提示信息
+					this.$message.error(res.data.error_description);
+				}
+			});	
+		},
+		// 分配方式change
+		permissionModechange(value){
+			if(value == '2'){
+				// 状态为直接分配
+				this.allocationType = true;
+			}else{
+				this.allocationType = false;
+			}
+		},
+		// 监控地址 change
+		monitorAddresschange(value){
+			let code = this.monitorTheaddressValueCopy;
+			//this.$message
+			let _value = value;
+			// 是否要切换 服务器地址
+			this.$confirm('是否要切换监控地址', '提示', {
+			confirmButtonText: '确定',
+			cancelButtonText: '取消',
+			type: 'warning'
+			}).then(() => {
+				this.makeSurechangemoitorAddress(_value);
+				this.monitorTheaddressValueCopy = value;
+			}).catch(() => {
+				this.$message({
+					type: 'info',
+					message: '已取消切换'
+				});
+				this.monitorTheaddressValue = code;
+
+			});
+		},
+		// 确定切换服务器地址
+		makeSurechangemoitorAddress(value){
+			// ajax 读取 根节点数据 
+			if(value == '1'){
+				this.monitor_resource_organizations = [
+					{
+						area_code: "13",
+						fault_count: 0,
+						health_count: 0,
+						name: "河北",
+						online_count: 0,
+						parent_code: "0",
+						platform_id: 1,
+						secrecy_count: 0,
+						security: false,
+						total_count: 7,
+						unique_code: "13_3",
+					}
+				]
+			}else if(value == '2'){
+				this.monitor_resource_organizations = [
+					{
+						area_code: "1301",
+						fault_count: 0,
+						health_count: 6,
+						name: "石家庄",
+						online_count: 6,
+						parent_code: "13",
+						platform_id: 1,
+						secrecy_count: 0,
+						security: true,
+						total_count: 7,
+						unique_code: "1301_1",
+					}
+				]
+			}
+		},
+		/* 监控 操作 */
+		// 监控根目录懒加载
+		monitorTherootDirectoryLoadnode(node, resolve,data){
+			console.log(node.level)
+			// 缓存
+			if(node.level === 0){
+				resolve(this.monitor_resource_organizations);
+			}
+			if (node.level >= 1) {
+				// 异步加载
+				this.getMonitorchildrenNode(node,resolve)
+			}
+		},
+		//  监控  获取二级节点数据
+		getMonitorchildrenNode(node,resolve){
+			// listSuborganizations
+			let objData = {
+				"area_code": node.data.area_code,
+				"enterprise_id": localStorage.EnterpriseId,
+				"is_root": false,
+				"is_security": true,
+				"platform_id": node.data.platform_id
+			}
+			listSuborganizations(objData).then(res => {
+				if (res.status === 200 && res.data.result == "ok") {
+					resolve(res.data.data);
+				}else{
+					// 错误提示信息
+					this.$message.error(res.data.error_description);
+				}
+			});	
+		},
+		// 监控渲染
+		renderMonitor(h, { node, data, store }){
+			return (
+				<span 
+				style="flex: 1; display: flex; align-items: center; justify-content: 
+				space-between; font-size: 14px; padding-right: 8px;">
+				<span>
+					<span class={data.unique_code} style={{color: (data.isMerge) ? "#57e29b" : "#fff"}}>{node.label}</span>
+				</span>
+				<span>
+					</span>
+				</span>
+			)
+		},
+		// 监控 勾选 数据监听
+		monitorCheckchangdata(data, type, childState){
+			//console.log(this.monitorDefaultchecked);
+			// monitorDefaultchecked
+			// 选中的数组 默认勾选 直接添加
+
+			// 编辑的时候监听   新增不用 
+			if(!this.saveSubmittype){
+				let checkArray = [];
+				let _data = data;
+				checkArray.push(data);
+				
+				if(type){
+					// 新增需要删除 缓存数据中所有子节点数据
+					let clearChildarray = this.monitorDefaultchecked;
+
+					// 清除子节点数据 当前节点都为父节点  区域方法
+					// 当前节点的 区域 code 字符串 
+					// region_code 可能不存在
+					let currentCode = _data.region_code ?  _data.region_code  :  _data.area_code ;
+
+					clearChildarray.map(function(item,index){
+						if(item.region_full_code){
+							let splitArray =  item.region_full_code.split('|');
+
+							if(splitArray.indexOf(currentCode) != -1){
+								clearChildarray.splice(index, 1);
+							}
+						}
+					})
+
+					// 添加当前选中的数据  合并 去重
+					this.monitorDefaultchecked = arrayObjdeweighting(this.monitorDefaultchecked,checkArray,'unique_code')
+
+
+
+				}else{
+					//console.log("删除");
+					// 减 遍历删除
+					checkArray.forEach(itemData => {
+						this.monitorDefaultchecked.forEach((itemArr, index) => {
+							if (itemData.unique_code == itemArr.unique_code) {
+								this.monitorDefaultchecked.splice(index, 1);
+							}
+						});
+					});
+				}
+			}
+		},
+		/* 监控 操作 */
+		// 流媒体服务器
+		streamingMediachange(code){
+			console.log(code);
+		},
+		/* 终端 功能 */
+		// 终端  初始化 根节点 数据
+		getTerminalrootNodedirectory(){
+			console.log('终端接口');
+			listRootterminalRegionpath({  "enterprise_id": localStorage.EnterpriseId}).then(res => {
+				if (res.status === 200 && res.data.result == "ok") {
+					// 数组遍历 取第一个添加到数据
+					let array = res.data.data;
+					let sortingArray = []
+					array.map(function(item,index){
+						item.map(function(t,i){
+							if(i == 0){
+								sortingArray.push(t);
+							}
+							// name 转换
+							t.name = t.region_name
+							if(t.unit_id){
+								t.name = t.unit_name
+								t.isMerge = true;
+								
+							}
+						})
+					})
+					this.terminal_regions = sortingArray;
+				}else{
+					// 错误提示信息
+					this.$message.error(res.data.error_description);
+				}
+			});	
+		},
+		// 终端 懒加载
+		terminaLoadnode(node, resolve){
+			if (node.level === 0) {
+				resolve(this.terminal_regions);
+			}
+			
+			if(node.level >= 1) { // 二级节点
+				// 异步加载
+				this.getTermianloadNode(node,resolve)
+			}
+			// 终端 勾选默认数据
+			if(this.terminalDefaultchecked.length != 0){
+				// 处理数据 取 unique_code 为数组 纯数组 
+				let disArray = this.terminalDefaultchecked;
+				let setCheckedkeyArray = []
+				for(let i = 0; i < disArray.length; i++){
+					setCheckedkeyArray.push(disArray[i].unique_code);
+				}
+				this.$refs.terminaTree.setCheckedKeys(setCheckedkeyArray)
+			}
+		},
+		getTermianloadNode(node,resolve){
+			let _this = this;
+			let _node = node
+			// 区分父级节点是否为区域
+			if(node.data.unit_id){
+				//  加载子单位
+				if(node.data.unit_id != '-1'){
+					let objData = {
+						"enterprise_id": localStorage.EnterpriseId,
+						"unit_pid": node.data.unit_id
+					}
+					// 异步函数加载 子节点   单位
+					listTerminaldeparts(objData).then(res => {
+						if (res.status === 200 && res.data.result == "ok") {
+							let  childArray = res.data.data
+							childArray.map(function(item,inde){	
+								item.isMerge = true;
+							})
+
+							if(_node.checked){
+								childArray.map(function(item,index){
+									_this.terminalDefaultchecked.push(item);
+								});
+							}
+							resolve(childArray);
+							// 终端 勾选默认数据
+							if(this.terminalDefaultchecked.length != 0){
+								// 处理数据 取 unique_code 为数组 纯数组 
+								let disArray = this.terminalDefaultchecked;
+								let setCheckedkeyArray = []
+								for(let i = 0; i < disArray.length; i++){
+									setCheckedkeyArray.push(disArray[i].unique_code);
+								}
+								this.$refs.terminaTree.setCheckedKeys(setCheckedkeyArray)
+							}
+						}
+					});
+
+				}else{
+					resolve([]);
+				}
+			}else{
+				// 区域
+				let objData = {
+					"enterprise_id": localStorage.EnterpriseId,
+					"parent_region_code": node.data.region_code,
+				}
+				// 终端通讯录区域子节点 包括 区域和单位
+				listSubterminalRegionsandDeparts(objData).then(res => {
+					if (res.status === 200 && res.data.result == "ok") {
+						let directArray = [];
+						let subTerminalarray = [];
+						let newArry = [];
+						if(res.data.data.direct_terminal_departs.length != 0){
+							directArray = res.data.data.direct_terminal_departs;
+						}else{
+							directArray = [];
+						}
+						if(res.data.data.sub_terminal_regions.length != 0){
+							subTerminalarray = res.data.data.sub_terminal_regions;
+						}else{
+							subTerminalarray = []
+						}
+						// 遍历添加标记 单位
+						directArray.map(function(item,index){
+							item.isMerge = true;
+						})
+						//	 合并数组
+						newArry = subTerminalarray.concat(directArray)
+						// 渲染数组集合
+						// 如果 父节点为勾选 则需要将获取的所有子节点 添加到缓存数组中
+						if(_node.checked){
+							newArry.map(function(item,index){
+								_this.terminalDefaultchecked.push(item);
+							});
+						}
+						// 合并渲染tree	
+						resolve(newArry);
+
+						// 反选 
+						let arrayFx = this.setHalfselectedArray(this.terminalDefaultcheckedCopy,newArry);
+						this.$nextTick(() => {
+							this.setHalfselected(arrayFx);
+						})
+
+						// 终端 勾选默认数据
+						if(this.terminalDefaultchecked.length != 0){
+							// 处理数据 取 unique_code 为数组 纯数组 
+							let disArray = this.terminalDefaultchecked;
+							let setCheckedkeyArray = []
+							for(let i = 0; i < disArray.length; i++){
+								setCheckedkeyArray.push(disArray[i].unique_code);
+							}
+							this.$refs.terminaTree.setCheckedKeys(setCheckedkeyArray)
+						}
+					}
+				});	
+			}	
+		},
+		// 终端渲染
+		renderContent(h, { node, data, store }) {
+			return (
+				<span 
+				style="flex: 1; display: flex; align-items: center; justify-content: 
+				space-between; font-size: 14px; padding-right: 8px;">
+				<span>
+					<span class={data.unique_code} style={{color: (data.isMerge) ? "#f7e59a" : "#fff"}}>{node.label}</span>
+				</span>
+				<span>
+					</span>
+				</span>
+			)
+			
+		},
+		// 终端勾选 数据监听 
+		termianCheckchangdata(data, type, childState){
+			// terminalDefaultchecked
+			// 选中的数组 默认勾选 直接添加
+			let checkArray = [];
+			let _data = data;
+			checkArray.push(data);
+			
+
+			if(type){
+				//console.log('新增')
+				let clearChildarray = this.terminalDefaultchecked;
+
+				// 清除子节点数据 当前节点都为父节点  区域方法
+
+				let currentCode = _data.region_code // 当前节点的 区域 code 字符串 
+
+				clearChildarray.map(function(item,index){
+					if(item.region_full_code){
+						item.region_full_code
+						let splitArray =  item.region_full_code.split('|');
+						if(splitArray.indexOf(currentCode) != -1){
+							clearChildarray.splice(index, 1);
+						}
+					}
+				})
+				
+
+				// 添加当前选中的数据 去重
+				this.terminalDefaultchecked = arrayObjdeweighting(this.terminalDefaultchecked,checkArray,'unique_code')
+				
+
+			}else{
+				//console.log("删除");
+				// 减 遍历删除
+				checkArray.forEach(itemData => {
+					this.terminalDefaultchecked.forEach((itemArr, index) => {
+						if (itemData.unique_code === itemArr.unique_code) {
+							this.terminalDefaultchecked.splice(index, 1);
+						}
+					});
+				});
+			}
+			/* console.log('勾选数据');
+			console.log(this.terminalDefaultchecked); */
+		},
+		// 终端 清除勾选信息
+		clearTerminatree(){
+			this.$refs.terminaTree.setCheckedKeys([]);	// 监控资源
+		},
+		/* 终端 功能 */
+		// 保存
+		childSavedata(){
+			// 根据页面来源 直接访问接口
+			// type  userceck / userlist
+			console.log('保存按钮');
+
+		},
+		// 关闭弹窗
+		cancelNewdata(){
+			console.log('关闭弹窗');
+			this.$emit('assignPopclose',false);
+		},
+		// 返回 半勾选数组  cacheArray  缓存     loadArray 加载
+		setHalfselectedArray(cacheArray,loadArray){
+			// 然后 半勾选数组
+			// 调用 半勾选方法
+			// 获取 初始化数据
+			let defaultArray = loadArray;
+			// 获取 缓存勾选的数组
+			let defaultCheckedarray = cacheArray;
+			// 半勾选数组
+			let halfSelectedarray = [];
+
+			defaultArray.map(function(item,index){
+				let regionCode = item.region_code ? item.region_code : item.area_code;
+				defaultCheckedarray.map(function(item2,index2){
+					// 拆分数组 
+					if(item2.region_full_code != undefined){
+						let splitArray =  item2.region_full_code.split('|')
+						// 过滤掉 单位
+						if(!item.isMerge){
+							if(splitArray.indexOf(regionCode) != -1){
+								halfSelectedarray.push(item)
+							}
+						}
+					}else{
+						return false;
+					}
+				
+					
+				})
+			})
+			return halfSelectedarray;
+		},
+		// 半勾选方法 jquery
+		setHalfselected(array){
+			// 去重  
+			let newArray = arrayObjdeweighting([],array,'unique_code');
+			// 遍历添加 class 虚拟 class
+			newArray.map(function(item,index){
+				let $checkBosinput = $('#commonPop').find('.'+item.unique_code).parents('.el-tree-node__content').find('.el-checkbox').find('.el-checkbox__input');
+					
+					if($checkBosinput.hasClass('is-checked')){
+						return false;
+					}else{
+						$checkBosinput.addClass("is-indeterminate")
+					}
+			})
+		}
+	},
+	watch:{
+		assignPopeditData:function(newVal,oldVal){
+			this.gainFromparentData = newVal;
+		},
+		pageSource:function(newVal,oldVal){
+			this.gainFromparentPath = newVal;
+		},
+		
+	}
+};
+</script>

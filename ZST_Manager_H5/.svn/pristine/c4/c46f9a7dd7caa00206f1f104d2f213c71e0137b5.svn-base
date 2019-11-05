@@ -1,0 +1,42 @@
+import Vue from 'vue';
+import Vuex from 'vuex';
+
+Vue.use(Vuex);
+
+const state = {
+  tabIndex: '1',
+  skipIndex: '1',
+  treeDatas:{},
+  loginInformation: {},    //登录信息
+  videoName: '视联分享圈',   
+
+}
+//  mutations
+const mutations = {
+    // 导航显示
+    skip(state, val) {
+      state.tabIndex = val
+    },
+    // 组件显示
+    moduleSkip(state, val) {
+      state.skipIndex = val
+    },
+    changtree(state, val){
+      state.treeDatas=val
+
+    },
+    addLogininformation(state,val){
+      state.loginInformation = val
+    },
+    setVideoname(state, val) {
+      state.videoName = val
+    }
+}
+
+
+
+
+export default new Vuex.Store({
+  state,
+  mutations
+})

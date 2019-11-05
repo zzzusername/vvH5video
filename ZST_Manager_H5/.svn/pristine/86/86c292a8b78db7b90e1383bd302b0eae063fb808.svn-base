@@ -1,0 +1,476 @@
+<template>
+  <div id="eventlist" class="mRight">
+    <div class="usercheckList">
+      <div class="zForm">
+        <span class="paddingLeft">姓名或手机号： </span><input v-model='query.name_or_phonenum' class="zInput" type="text"/>
+        <span class="paddingLeft">状态：</span>
+        <div class="zSelect">
+          <el-select v-model="query.one_touch_alarm_event_status_enum" class="zgroup" placeholder="全部" @change="changeStatus(query.one_touch_alarm_event_status_enum)">
+            <el-option v-for="item in eventStateData"
+                       :key="item.id" :label="item.name" :value="item.id"></el-option>
+          </el-select>
+        </div>
+        <button class="buttonradius" @click="findDatalist">查询</button>
+        <button class="buttonradius" @click="clearDatalist">清空</button>
+      </div>
+      <!-- table  -->
+      <div class="zTable">
+        <div class="elTable">
+          <div class="scrollbox">
+            <el-table
+              :data="eventTabledata"
+            >
+              <el-table-column prop="fixedSort" label="序号"></el-table-column>
+              <el-table-column prop="creator_name" label="报警人姓名"></el-table-column>
+              <el-table-column prop="creator_phonenum" label="手机号"></el-table-column>
+              <el-table-column prop="" label="报警时间">
+                <template slot-scope="scope">
+                  <span>{{scope.row.create_time | FormatDate('yyyy-MM-dd hh:mm')}}</span>
+                </template>
+              </el-table-column>
+              <el-table-column prop="" label="状态">
+                <template slot-scope="scope">
+                  <span v-if="scope.row.event_status == 'WAIT'">等待接听</span>
+                  <span v-else-if="scope.row.event_status == 'TERMINAL_RECEIVED'">等待接听</span>
+                  <span v-else-if="scope.row.event_status == 'TERMINAL_RECEIVED'">坐席接警</span>
+                  <span v-else-if="scope.row.event_status == 'DISPATCH'">派单中</span>
+                  <span v-else-if="scope.row.event_status == 'POLICE_RECEIVED'">警员接警</span>
+                  <span v-else-if="scope.row.event_status == 'MISS'">未接</span>
+                  <span v-else>结束</span>
+                </template>
+              </el-table-column>
+              <el-table-column label="坐席服务号">
+                <template slot-scope="scope">
+                  <span>{{scope.row.terminal_receive_num ? scope.row.terminal_receive_num : '暂无'}}</span>
+                </template>
+              </el-table-column>
+              <el-table-column prop="" label="接警人员">
+                <template slot-scope="scope">
+                  <span>{{scope.row.policeman_name ? scope.row.policeman_name : '暂无'}}</span>
+                </template>
+              </el-table-column>
+              <el-table-column prop="" label="操作" width="170px">
+                <template slot-scope="scope">
+                  <span class="spanBtn" @click="getEventDetail(scope.row)">详情</span>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+          <!-- page -->
+          <el-pagination
+            @current-change="handleCurrentChange"
+            :current-page.sync="page_total_pages"
+            :page-size="query.page_size"
+            layout="total, prev, pager, next, jumper"
+            :total="page_total_items"
+            class="zPage"
+          >
+          </el-pagination>
+        </div>
+      </div>
+    </div>
+    <!-- 详情弹窗 -->
+    <el-dialog  title="详情"
+                :visible.sync="eventDeatilpop"
+                id="zDialogtext"
+                width="60%">
+      <div class="block block-inline">
+        <li>
+          <span class="liL w20">报警人姓名</span>
+          <span class="liR w80">{{eventDeatiledata.creator_name ? eventDeatiledata.creator_name  : '暂无数据'}}</span>
+        </li>
+        <li>
+          <span class="liL w20">手机号</span>
+          <span class="liR w80">{{eventDeatiledata.creator_phonenum ? eventDeatiledata.creator_phonenum  : '暂无数据'}}</span>
+        </li>
+        <li>
+          <span class="liL w20">报警时间</span>
+          <span class="liR w80">{{eventDeatiledata.create_time | FormatDate('yyyy-MM-dd hh:mm')}}</span>
+        </li>
+        <li>
+          <span class="liL w20">状态</span>
+          <span class="liR w80" v-if="eventDeatiledata.event_status == 'WAIT'">等待接听</span>
+          <span class="liR w80" v-else-if="eventDeatiledata.event_status == 'TERMINAL_RECEIVED'">等待接听</span>
+          <span class="liR w80" v-else-if="eventDeatiledata.event_status == 'TERMINAL_RECEIVED'">坐席接警</span>
+          <span class="liR w80" v-else-if="eventDeatiledata.event_status == 'DISPATCH'">派单中</span>
+          <span class="liR w80" v-else-if="eventDeatiledata.event_status == 'POLICE_RECEIVED'">警员接警</span>
+          <span class="liR w80" v-else-if="eventDeatiledata.event_status == 'MISS'">未接</span>
+          <span class="liR w80" v-else>结束</span>
+        </li>
+        <li>
+          <span class="liL w20">坐席服务号</span>
+          <span class="liR w80">{{eventDeatiledata.terminal_receive_num ? eventDeatiledata.terminal_receive_num : '暂无数据'}}</span>
+        </li>
+        <li>
+          <span class="liL w20">接警人员</span>
+          <span class="liR w80">{{eventDeatiledata.policeman_name ? eventDeatiledata.policeman_name : '暂无数据'}}</span>
+        </li>
+      </div>
+      <div class="userBtn">
+        <el-button @click="eventDeatilpop = false">关闭</el-button>
+      </div>
+    </el-dialog>
+  </div>
+</template>
+<script>
+  import $ from "jquery";
+  import axios from "axios";
+  /* 展示弹窗样式文件 */
+  import '../../style/common.css' /*引入公共样式*/
+  // js
+  import {heightAuto,getCaption,isWhitespace} from '../../untils/heightAuto' //注意路径
+  import {
+    getEventList,
+  } from '../../api/eventlist'
+
+  export default {
+    data() {
+      return {
+        // 表格渲染数据
+        eventTabledata:[],
+        query:{
+          name_or_phonenum: '',
+          page_size:10,
+          one_touch_alarm_event_status_enum	: null
+        },
+        // 用户状态
+        eventStateData : [
+          {id: null, name: '全部'},
+          {id: 'WAIT', name: '等待接听'},
+          {id: 'TERMINAL_RECEIVED', name: '坐席接警'},
+          {id: 'DISPATCH', name: '派单中'},
+          {id: 'POLICE_RECEIVED', name: '警员接警'},
+          {id: 'MISS', name: '未接'},
+          {id: 'END', name: '结束'},
+        ],
+        // 详情
+        eventDeatilpop : false,
+        eventDeatiledata : {},
+        /* 分页相关 */
+        page_total_items : 0,  // 总条数
+        page_total_pages : 1,  //  当前条数
+        svaeLoading : false
+      }
+    },
+    methods:{
+      // 获取所有事件
+      getEventData(){
+        this.query.page_number = this.page_total_pages - 1,
+          getEventList(this.query).then(res => {
+            if (res.status === 200 && res.data.result == "ok") {
+              this.eventTabledata = res.data.data.list
+              this.eventTabledata.map(function(item,index){
+                item.fixedSort = index - 0 + 1;
+              })
+
+              /* 总条数 */
+              this.page_total_items = res.data.data.page_total_items;
+              this.page_total_pages = res.data.data.page_number - 0 + 1;
+            }
+          });
+      },
+      //更改用户状态
+      changeStatus(id){
+        this.page_total_pages = 1;
+        this.getEventData();
+      },
+      // 查询
+      findDatalist(){
+        this.page_total_pages = 1
+        this.getEventData();
+      },
+      // 清空
+      clearDatalist(){
+        this.page_total_pages = 1
+        this.query.name_or_phonenum = '';
+        this.query.one_touch_alarm_event_status_enum = null;
+        this.getEventData();
+      },
+      // 查看详情
+      getEventDetail(data){
+        this.eventDeatiledata = data
+        this.eventDeatilpop = true;
+      },
+      // page
+      handleCurrentChange(currentPage) {
+        this.page_total_pages = currentPage;
+        this.getEventData();
+      },
+    },
+    mounted: function() {
+      let row = '.usercheckList'
+      heightAuto(row)
+      // 获取列表
+      this.getEventData();
+    },
+  }
+
+</script>
+<style scoped>
+  .zPage{
+    margin-top: 50px;
+  }
+  #eventlist .w20{width: 30%;}
+  #eventlist .w80{width: 70%;}
+</style>
+
+<style lang="scss">
+  #eventlist {
+    .usercheckList {
+      padding: 34px 42px;
+      margin: 15px 27px 15px 15px;
+      background: #354166;
+      box-shadow: 0 0 26px #01060e;
+      .zForm {
+        span {
+          float: left;
+          color: #eee;
+          display: block;
+          font-size: 14px;
+          overflow: hidden;
+          line-height: 36px;
+        }
+        button {
+          float: left;
+          color: #eee;
+          height: 38px;
+          font-size: 14px;
+          margin-left: 11px;
+          text-align: center;
+          line-height: 38px;
+          padding: 0px 15px;
+          background: #1b274c;
+          border: 1px #3b4872 solid;
+        }
+        button:hover {
+          background: #57e29b;
+        }
+        span.btnRight {
+          float: right;
+          display: inline-block;
+        }
+        .zSelect {
+          float: left;
+          width: 148px;
+        }
+        .paddingLeft {
+          padding-left: 20px;
+        }
+        .zInput {
+          float: left;
+          width: 200px;
+          height: 36px;
+          font-size: 14px;
+          margin-left:10px;
+          line-height: 36px;
+          padding-left: 4px !important;
+          margin-right: 20px;
+          background: #2a3558;
+          border: 1px #3b4872 solid;
+        }
+      }
+      .zTable {
+        clear: both;
+        height: 94%;
+        overflow: hidden;
+        padding-top: 26px;
+        .elTable {
+          height: 91.7%;
+          overflow: hidden;
+          .el-table .warning-row td {
+            color: oldlace;
+            background-color: transparent;
+          }
+          .el-table .warning-row {
+            background: -webkit-linear-gradient(#3f7984, #485b7d, #3f7984);
+            background: -o-linear-gradient(#3f7984, #485b7d, #3f7984);
+            background: -moz-linear-gradient(#3f7984, #485b7d, #3f7984);
+            background: linear-gradient(#3f7984, #485b7d, #3f7984);
+            filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#3f7984', endColorstr='#485b7d', GradientType=0);
+            border-top: 2px #57e29b solid;
+            border-bottom: 2px #57e29b solid;
+          }
+          .el-table .success-row {
+            background-color: #6ee2c1;
+            color: #f0f9eb;
+          }
+          .el-table .warning-row td {
+            color: oldlace;
+          }
+          .el-table .success-row td {
+            color: #f0f9eb;
+          }
+          .el-table .warning-row td div {
+            color: oldlace;
+          }
+          .el-table .success-row td div {
+            color: #f0f9eb;
+          }
+        }
+      }
+    }
+    input.el-input__inner:hover {
+      border: 1px #3b4872 solid;
+    }
+    .el-input__icon {
+      width: 37px;
+    }
+    .el-input--prefix .el-input__inner {
+      padding-left: 38px;
+    }
+  }
+  @media screen and (max-width: 1440px) {
+    #usercheck {
+      .mRightTwo {
+        .paddingLeft {
+          padding-left: 10px;
+        }
+        .zForm {
+          button {
+            height: 30px;
+            font-size: 12px !important;
+            line-height: 30px;
+            padding-left: 8px;
+            padding-right: 8px;
+          }
+          span {
+            font-size: 12px !important;
+          }
+          span.btnRight {
+            float: left;
+            /*margin-top: 10px;*/
+          }
+          .zInput {
+            width: 100px !important;
+            height: 28px;
+            line-height: 28px;
+          }
+          .zgroup {
+            height: 30px;
+          }
+          .zSelect {
+            float: left;
+            width: 106px;
+          }
+        }
+        .zTable {
+          clear: both;
+          height: 94%;
+          overflow: hidden;
+          padding-top: 26px;
+          .elTable {
+            height: 82%;
+            .el-table td {
+              padding: 4px 0;
+            }
+          }
+        }
+      }
+    }
+  }
+  @media screen and (max-width: 1366px) {
+    #usercheck .mRightTwo .el-dialog .el-dialog__body{
+      padding: 24px 24px 10px;
+    }
+    #usercheck {
+      .mRightTwo {
+        .paddingLeft {
+          padding-left: 10px;
+        }
+        .zForm {
+          button {
+            height: 30px;
+            font-size: 12px !important;
+            line-height: 30px;
+            padding-left: 5px;
+            padding-right: 5px;
+          }
+          span {
+            font-size: 12px !important;
+          }
+          span.btnRight {
+            float: left;
+          }
+          .zInput {
+            width: 80px !important;
+            height: 28px;
+            line-height: 28px;
+          }
+          .zgroup {
+            height: 30px;
+          }
+          .zSelect {
+            float: left;
+            width: 104px;
+          }
+        }
+        .el-select-dropdown__item {
+          font-size: 12px;
+        }
+      }
+    }
+  }
+  /* 弹窗样式重置 */
+  .block-inline{
+    width: 100%;
+  }
+  .block .el-input__inner{
+    height: 36px;
+    margin: 2px 0;
+    line-height: 36px;
+    border: 1px solid #3b4872;
+  }
+  .block .el-input__inner{
+    -webkit-appearance: none;
+    background-color: #2a3558;
+    background-image: none;
+    box-sizing: border-box;
+    color: #eee;
+    display: inline-block;
+    font-size: inherit;
+    outline: 0;
+    padding: 0 15px;
+    transition: border-color .2s cubic-bezier(.645,.045,.355,1);
+    width: 100%;
+  }
+  .formTable{
+    padding: 2px 4px;
+    background: #4a567c;
+    margin-bottom: 20px;
+  }
+  .block .el-form-item__label{
+    height: 36px;
+    margin: 2px 0;
+    line-height: 36px;
+    border: 1px solid #3b4872;
+  }
+  .infoMsg{
+    padding-left: 9px;
+    display: inline-block;
+    margin-top: 10px;
+  }
+  .checkboxBg{
+    height: 34px;
+    margin: 2px 0;
+    line-height: 34px;
+    padding-left: 12px;
+    background: #2a3558;
+    border: 1px solid #3b4872;
+  }
+  .textarea{
+    clear: both;
+    width: 100%;
+    height: 70px;
+    background: #4a567c;
+    font-size: 14px;
+    padding: 10px;
+  }
+  /* 弹窗详情 左右 */
+  #zDialogtex #detailW2{
+    overflow: hidden;
+  }
+  #detailW2 li{
+    width: 50%!important;
+    margin: 0;
+  }
+</style>

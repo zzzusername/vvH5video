@@ -1,0 +1,820 @@
+<template>
+  <div id="plicelist" class="mRight">
+    <div class="usercheckList">
+      <div class="zForm">
+        <span class="paddingLeft">姓名或手机号： </span><input v-model='query.name_or_phonenum' class="zInput" type="text" placeholder="" />
+        <span class="paddingLeft">警号： </span><input v-model='query.code'  class="zInput" type="text" placeholder="" />
+        <span class="paddingLeft">用户状态：</span>
+        <div class="zSelect">
+          <el-select v-model="query.status" class="zgroup" placeholder="全部" @change="changeStatus(query.status)">
+            <el-option v-for="item in userStatedata"
+                       :key="item.id" :label="item.name" :value="item.id"></el-option>
+          </el-select>
+        </div>
+        <button class="buttonradius" @click="findDatalist">查询</button>
+        <button class="buttonradius" @click="clearDatalist">清空</button>
+        <button class="buttonradius" @click="addData" style="float: right;">新增</button>
+      </div>
+      <!-- table  -->
+      <div class="zTable">
+        <div class="elTable">
+          <div class="scrollbox">
+            <el-table
+              :data="userTabledata"
+            >
+              <el-table-column prop="fixedSort" label="序号"></el-table-column>
+              <el-table-column prop="realname" label="警员姓名"></el-table-column>
+              <el-table-column prop="phonenum" label="手机号"></el-table-column>
+              <el-table-column prop="" label="性别">
+                <template slot-scope="scope">
+                  <span v-if="scope.row.sex == 'BOY'">男</span>
+                  <span v-else>女</span>
+                </template>
+              </el-table-column>
+              <el-table-column prop="region_name" label="地区"></el-table-column>
+              <el-table-column prop="enterprise_job_title" label="职务"></el-table-column>
+              <el-table-column prop="" label="用户状态">
+                <template slot-scope="scope">
+                  <span v-if="scope.row.status == 'OFFLINE'">离线</span>
+                  <span v-else>在线</span>
+                </template>
+              </el-table-column>
+              <el-table-column prop="" label="操作" width="170px">
+                <template slot-scope="scope">
+                  <span class="spanBtn" @click="getUserdetail(scope.row)">详情</span>
+                  <span class="spanBtn" @click="updatePlice(scope.row)">编辑</span>
+                  <span class="spanBtn" @click="deleteUserdata(scope.row)">删除</span>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+          <!-- page -->
+          <el-pagination
+            @current-change="handleCurrentChange"
+            :current-page.sync="page_total_pages"
+            :page-size="query.page_size"
+            layout="total, prev, pager, next, jumper"
+            :total="page_total_items"
+            class="zPage"
+          >
+          </el-pagination>
+        </div>
+      </div>
+    </div>
+    <!-- 详情弹窗 -->
+    <el-dialog  title="详情"
+                :visible.sync="userDeatilpop"
+                id="zDialogtext"
+                width="70%">
+      <div class="block block-inline">
+        <li>
+          <span class="liL w20">用户姓名</span>
+          <span class="liR w80">{{userDeatiledata.realname ? userDeatiledata.realname  : '暂无数据'}}</span>
+        </li>
+        <li>
+          <span class="liL w20">手机号</span>
+          <span class="liR w80">{{userDeatiledata.phonenum ? userDeatiledata.phonenum  : '暂无数据'}}</span>
+        </li>
+        <li>
+          <span class="liL w20">警号</span>
+          <span class="liR w80">{{userDeatiledata.code ? userDeatiledata.code  : '暂无数据'}}</span>
+        </li>
+        <li>
+          <span class="liL w20">性别</span>
+          <span class="liR w80">{{userDeatiledata.sex == 'BOY' ? '男'  : '女'}}</span>
+        </li>
+        <li>
+        <span class="liL w20">地区</span>
+        <span class="liR w80">{{userDeatiledata.region_full_name ? userDeatiledata.region_full_name  : '未选择'}}</span>
+      </li>
+        <li>
+          <span class="liL w20">职务</span>
+          <span class="liR w80">{{userDeatiledata.enterprise_job_title ? userDeatiledata.enterprise_job_title  : '未选择'}}</span>
+        </li>
+      </div>
+      <div class="userBtn">
+        <el-button @click="userDeatilpop = false">关闭</el-button>
+      </div>
+    </el-dialog>
+    <!-- 新增-->
+    <div id="commonPop">
+      <el-dialog  :title="title"
+                  :visible.sync="addUserpop"
+                  :before-close="cancelNewdata"
+                  :close-on-click-modal='false'
+                  width="70%">
+        <el-form  ref="edit" label-width="30%" class="demo-ruleForm">
+          <div class="formTable">
+            <div class="block block-line">
+              <el-form-item label="姓名：" :rules="[{ required: true, message: ' '}]">
+                <el-input v-model="addForm.realname" maxlength="50"></el-input>
+              </el-form-item>
+            </div>
+            <template v-if="!isShowPhone">
+              <div class="block block-line">
+                <el-form-item label="手机号：" :rules="[{ required: true, message: ' '}]">
+                  <input class="phone_style" v-model="addForm.phonenum" max="50"/>
+                </el-form-item>
+              </div>
+              <div class="block block-line">
+                <el-form-item label="警号：" :rules="[{ required: true, message: ' '}]">
+                  <input class="phone_style" v-model="addForm.code" maxlength="50"/>
+                </el-form-item>
+              </div>
+              <div class="block block-line">
+                <el-form-item label="密码：" :rules="[{ required: true, message: ' '}]">
+                  <el-input v-model="addForm.password" maxlength="50"></el-input>
+                </el-form-item>
+              </div>
+            </template>
+            <template v-if="isShowPhone">
+              <div class="block block-line">
+                <el-form-item label="手机号：">
+                  <el-input type='tel' v-model="addForm.phonenum" maxlength="50" :disabled="isDisabled"></el-input>
+                </el-form-item>
+              </div>
+              <div class="block block-line">
+                <el-form-item label="警号：">
+                  <el-input v-model="addForm.code" maxlength="50" :disabled="isDisabled"></el-input>
+                </el-form-item>
+              </div>
+              <div class="block block-line">
+                <el-form-item label="密码：" >
+                  <el-input v-model="addForm.password" maxlength="50" placeholder="如需修改请输入新密码"></el-input>
+                </el-form-item>
+              </div>
+            </template>
+            <div class="block">
+              <el-form-item label="性别："  label-width="15%">
+                <div class="checkboxBg">
+                  <el-radio v-model="addForm.sex" label="BOY">男</el-radio>
+                  <el-radio v-model="addForm.sex" label="GIRL">女</el-radio>
+                </div>
+              </el-form-item>
+            </div>
+            <div class="block" id="areaSelectpopover">
+              <el-form-item label="地区：" label-width="15%">
+                <el-input
+                  v-model="information.region_full_name"
+                  maxlength="50"
+                  @focus="isShowregionFulldata = true"
+                ></el-input>
+                <div class="treeCont" v-if="isShowregionFulldata">
+                  <el-tree
+                    :props="props"
+                    :load="regionFulltree"
+                    lazy
+                    accordion
+                    v-if="isShowregionFulldata"
+                    @current-change="synchronouRegionsdata"
+                  >
+                  </el-tree>
+                </div>
+                <span class="close"  v-if="isShowregionFulldata" @click="closeShowregionFulldata">
+									<img src="../../../assets/close.png" alt="close">
+								</span>
+              </el-form-item>
+            </div>
+            <div class="block">
+              <el-form-item label="职务："  label-width="15%">
+                <el-select v-model="addForm.enterprise_job_title_id" class="zgroup" placeholder="--请选择--">
+                  <el-option v-for="item in enterpriseJobtitles"
+                             :key="item.index" :label="item.name" :value="item.id"></el-option>
+                </el-select>
+              </el-form-item>
+            </div>
+          </div>
+          <div class="userBtn">
+            <el-form-item>
+              <el-button type="primary" @click="saveNewdata" :loading="svaeLoading">保存</el-button>
+              <el-button @click="cancelNewdata()">取消</el-button>
+            </el-form-item>
+          </div>
+        </el-form>
+      </el-dialog>
+    </div>
+  </div>
+</template>
+<script>
+  import $ from "jquery";
+  import axios from "axios";
+  /* 展示弹窗样式文件 */
+  import '../../style/common.css' /*引入公共样式*/
+  // js
+  import {heightAuto,getCaption,isWhitespace} from '../../untils/heightAuto' //注意路径
+  import {
+    getAllPoliceList,
+    policeAdd,
+    policeUpdate,
+    policeDelete,
+    policeInfo,
+    listEnterprisejobTitles
+  } from '../../api/plicelist'
+  import {getRegiondetail,getRegionsbyPid} from '../../api/commonapi'
+
+  export default {
+    data() {
+      return {
+        imgApi : window.ServerUrl,
+        // 表格渲染数据
+        userTabledata:[],
+        isShowPhone: false,
+        isDisabled:true,
+        query:{
+          code: '',//警号
+          enterprise_id: localStorage.EnterpriseId,
+          name_or_phonenum: '',
+          page_size:10,
+          status: null
+        },
+        // 所在地区名称
+        region_name : '',
+        // 职务数据
+        enterpriseJobtitles : [],
+        // 用户状态
+        userStatedata : [
+          {id: null, name: '全部'},
+          {id: 'ONLINE', name: '在线'},
+          {id: 'OFFLINE', name: '离线'}
+        ],
+        // 新增弹窗
+        addForm : {
+          enterprise_id : localStorage.EnterpriseId,
+          enterprise_login_user_id: localStorage.userId,
+          enterprise_job_title_id: '',
+          password : '',
+          phonenum : '',
+          realname : '',
+          region_code : '',
+          sex : 'BOY',
+          code: ''
+        },
+        // 详情
+        userDeatilpop : false,
+        userDeatiledata : {},
+        /* 新增弹窗 */
+        addUserpop : false,
+        /* 地区相关 */
+        information : {
+          region_full_name : '',
+          region_full_code : '',
+          region_code : '',
+          region_name : '',
+        },
+        props: {
+          label: 'name',
+          children: 'children',
+        },
+        // 是否展示工作单位下拉数据
+        isDepartdata : false,
+
+        // 地区初始化数据 全国
+        InitRegionfulldata : {
+          id:'000000000000',
+          name: '全国'
+        },
+        isShowregionFulldata : false,
+        /* 分页相关 */
+        page_total_items : 0,  // 总条数
+        page_total_pages : 1,  //  当前条数
+        svaeLoading : false,
+        title: '新增'
+      }
+    },
+    methods:{
+      // 初始化获取所有用户
+      getInitallUserdata(){
+        this.query.page_number = this.page_total_pages - 1,
+          getAllPoliceList(this.query).then(res => {
+          if (res.status === 200 && res.data.result == "ok") {
+            this.userTabledata = res.data.data.list
+            this.userTabledata.map(function(item,index){
+              // fixedSort
+              item.fixedSort = index - 0 + 1;
+            })
+
+            /* 总条数 */
+            this.page_total_items = res.data.data.page_total_items;
+            this.page_total_pages = res.data.data.page_number - 0 + 1;
+          }
+        });
+      },
+      // 企业下所有职称
+      getInitjobTitledata(){
+        //  listRnterprisejobTitles
+        let objData = {
+          "enterprise_id": localStorage.EnterpriseId
+        }
+        listEnterprisejobTitles(objData).then(res => {
+          if (res.status === 200 && res.data.result == "ok") {
+            this.enterpriseJobtitles = res.data.data
+          }
+        });
+      },
+      //更改用户状态
+      changeStatus(id){
+        this.page_total_pages = 1;
+        this.getInitallUserdata();
+      },
+      // 查询
+      findDatalist(){
+        this.page_total_pages = 1;
+        this.getInitallUserdata();
+      },
+      // 清空
+      clearDatalist(){
+        this.page_total_pages = 1;
+        this.query.name_or_phonenum = '';
+        this.query.code = '';
+        this.query.status = null;
+        this.getInitallUserdata();
+      },
+      // 保存 新增数据
+      saveNewdata(){
+        if(!this.addForm.realname) {
+          this.$message.error('请输入姓名');
+          return
+        }
+        this.addForm.region_code = this.information.region_code
+        if(this.addForm.policeman_id){
+          this.addForm.enterprise_login_user_id && delete this.addForm.enterprise_login_user_id
+          this.addForm.phonenum && delete this.addForm.phonenum
+          this.addForm.code && delete this.addForm.code
+          policeUpdate(this.addForm).then(res => {
+            if (res.status === 200 && res.data.result == "ok") {
+              this.addUserpop = false;
+              this.getInitallUserdata();
+              this.clearNewaddData();
+            }else{
+              this.$message.error(res.data.error_description);
+            }
+          });
+        }else{
+          if(!this.addForm.phonenum) {
+            this.$message.error('请输入手机号');
+            return
+          }
+          if(!this.addForm.code) {
+            this.$message.error('请输入警号');
+            return
+          }
+          if(!this.addForm.password) {
+            this.$message.error('请输入密码');
+            return
+          }
+          policeAdd(this.addForm).then(res => {
+            if (res.status === 200 && res.data.result == "ok") {
+              this.addUserpop = false;
+              this.getInitallUserdata();
+              this.clearNewaddData();
+            }else{
+              this.$message.error(res.data.error_description);
+            }
+          });
+        }
+
+      },
+      //新增
+      addData(){
+        this.title = '新增'
+        this.isShowPhone = false
+        this.addForm.enterprise_login_user_id = localStorage.userId
+        this.addUserpop = true
+      },
+      // 新增弹窗取消按钮
+      cancelNewdata(){
+        this.addUserpop = false;
+        this.clearNewaddData();
+      },
+      // 清空新增数据
+      clearNewaddData(){
+        this.isShowPhone = false
+        this.addForm.password =  "";
+        this.addForm.phonenum =  "";
+        this.addForm.realname =  "";
+        this.addForm.region_code =  "";
+        this.addForm.enterprise_job_title_id =  "";
+        this.addForm.sex =  "BOY";
+        this.addForm.code =  "";
+        this.addForm.policeman_id && delete this.addForm.policeman_id
+        //地区
+        this.information.region_code = '';
+        this.information.region_full_name = ''
+        // 地区展示字端
+        // this.isShowregionFulldata = false;
+
+      },
+      // 查看详情
+      getUserdetail(scope){
+        let objData = {
+          "policeman_id" : scope.policeman_id
+        }
+        policeInfo(objData).then(res => {
+          if (res.status === 200 && res.data.result == "ok") {
+            this.userDeatiledata = res.data.data
+            this.userDeatilpop = true;
+          }else{
+            this.$message.error(res.data.error_description);
+          }
+        });
+      },
+      // 删除
+      deleteUserdata(scope){
+        this.$confirm('是否删除?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          let objData = {
+            "policeman_id": scope.policeman_id
+          }
+          policeDelete(objData).then(res => {
+            if (res.status === 200 && res.data.result == "ok") {
+              this.$message.success('删除成功');
+              this.getInitallUserdata();
+            }else{
+              this.$message.error(res.data.error_description);
+            }
+          });
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
+          });
+        });
+      },
+      //编辑
+      updatePlice(scope){
+        this.title = '编辑'
+        this.isShowPhone = true
+        this.addForm.phonenum =  scope.phonenum;
+        this.addForm.realname =  scope.realname;
+        this.addForm.region_code =  scope.region_code;
+        this.addForm.enterprise_job_title_id =  scope.enterprise_job_id ? scope.enterprise_job_id : '' ;
+        this.addForm.sex =  scope.sex;
+        this.addForm.code =  scope.code;
+        this.addForm.policeman_id =  scope.policeman_id;
+        this.information.region_code = scope.region_code
+        this.information.region_full_code = scope.region_full_code
+        this.information.region_full_name = scope.region_full_name
+        this.information.region_name = scope.region_name
+        this.addUserpop = true
+      },
+      /* 地区选中相关函数 */
+      // 地区 加载函数
+      regionFulltree(node,resolve){
+        if (node.level === 0) {
+          return resolve([this.InitRegionfulldata]);
+        }
+        let objData = {
+          "pid": node.data.id
+        }
+        getRegionsbyPid(objData).then(res => {
+          if (res.status === 200 && res.data.result == "ok") {
+            resolve(res.data.data.regions)
+          }
+        });
+      },
+      // 同步地区数据
+      synchronouRegionsdata(data){
+        // 查询详情接口 递归查询所有父节点
+        // 全国除外
+        if(data.id != "000000000000"){
+          let objData = {
+            "id": data.id,
+            "timestamp": 0
+          }
+          // 获取地区详情
+          getRegiondetail(objData).then(res => {
+            if (res.status === 200 && res.data.result == "ok") {
+              // 当前点击的数据获取的数据
+              this.information.region_full_name = res.data.data.region_details[0].names;
+              this.information.region_full_code = res.data.data.region_details[0].ids;
+              // 当前点击的数据
+              this.information.region_code = data.id
+              this.information.region_name = data.name
+            }
+          });
+        }else{
+          // 同步数据
+          this.information.region_full_name = '全国';
+          this.information.region_full_name_ids = '000000000000';
+          // 当前点击的数据
+          this.information.region_code = '000000000000'
+          this.information.region_name ='全国'
+        }
+
+      },
+      // 地区下拉关闭按钮
+      closeShowregionFulldata(){
+        this.isShowregionFulldata = false;
+      },
+      // page
+      handleCurrentChange(currentPage) {
+        this.page_total_pages = currentPage;
+        console.log(currentPage)
+        this.getInitallUserdata();
+      },
+    },
+    mounted: function() {
+      let row = '.usercheckList'
+      heightAuto(row)
+      // 获取所有用户信息
+      this.getInitallUserdata();
+      // 初始化 企业职称
+      this.getInitjobTitledata();
+      // 初始化部门信息  tree 结构 根节点
+      // this.getInitenterprisedEpartsdata();
+    },
+  }
+
+</script>
+<style scoped>
+  .zPage{
+    margin-top: 20px;
+  }
+  #plicelist .w20{width: 20%;}
+  #plicelist .w80{width: 80%;}
+  .phone_style {
+    -webkit-appearance: none;
+    background-color: #2a3558;
+    background-image: none;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    color: #eee;
+    display: inline-block;
+    font-size: inherit;
+    outline: 0;
+    padding: 0 15px;
+    -webkit-transition: border-color 0.2s cubic-bezier(0.645, 0.045, 0.355, 1);
+    transition: border-color 0.2s cubic-bezier(0.645, 0.045, 0.355, 1);
+    width: 100%;
+    height: 36px;
+    margin: 2px 0;
+    line-height: 36px;
+    border: 1px solid #3b4872;
+  }
+
+</style>
+
+<style lang="scss">
+  #plicelist {
+    .usercheckList {
+      padding: 34px 42px;
+      margin: 15px 27px 15px 15px;
+      background: #354166;
+      box-shadow: 0 0 26px #01060e;
+      .zForm {
+        span {
+          float: left;
+          color: #eee;
+          display: block;
+          font-size: 14px;
+          overflow: hidden;
+          line-height: 36px;
+        }
+        button {
+          float: left;
+          color: #eee;
+          height: 38px;
+          font-size: 14px;
+          margin-left: 11px;
+          text-align: center;
+          line-height: 38px;
+          padding: 0px 15px;
+          background: #1b274c;
+          border: 1px #3b4872 solid;
+        }
+        button:hover {
+          background: #57e29b;
+        }
+        span.btnRight {
+          float: right;
+          display: inline-block;
+        }
+        .zSelect {
+          float: left;
+          width: 148px;
+        }
+        .paddingLeft {
+          padding-left: 20px;
+        }
+        .zInput {
+          float: left;
+          width: 200px;
+          height: 36px;
+          font-size: 14px;
+          margin-left:10px;
+          line-height: 36px;
+          padding-left: 4px !important;
+          margin-right: 20px;
+          background: #2a3558;
+          border: 1px #3b4872 solid;
+        }
+      }
+      .zTable {
+        clear: both;
+        /*height: 94%;*/
+        overflow: auto;
+        padding-top: 15px;
+        .elTable {
+          height: 91.7%;
+          overflow: hidden;
+          .el-table .warning-row td {
+            color: oldlace;
+            background-color: transparent;
+          }
+          .el-table .warning-row {
+            background: -webkit-linear-gradient(#3f7984, #485b7d, #3f7984);
+            background: -o-linear-gradient(#3f7984, #485b7d, #3f7984);
+            background: -moz-linear-gradient(#3f7984, #485b7d, #3f7984);
+            background: linear-gradient(#3f7984, #485b7d, #3f7984);
+            filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#3f7984', endColorstr='#485b7d', GradientType=0);
+            border-top: 2px #57e29b solid;
+            border-bottom: 2px #57e29b solid;
+          }
+          .el-table .success-row {
+            background-color: #6ee2c1;
+            color: #f0f9eb;
+          }
+          .el-table .warning-row td {
+            color: oldlace;
+          }
+          .el-table .success-row td {
+            color: #f0f9eb;
+          }
+          .el-table .warning-row td div {
+            color: oldlace;
+          }
+          .el-table .success-row td div {
+            color: #f0f9eb;
+          }
+        }
+      }
+    }
+    input.el-input__inner:hover {
+      border: 1px #3b4872 solid;
+    }
+    .el-input__icon {
+      width: 37px;
+    }
+    .el-input--prefix .el-input__inner {
+      padding-left: 38px;
+    }
+  }
+  @media screen and (max-width: 1440px) {
+    #plicelist {
+      .mRightTwo {
+        .paddingLeft {
+          padding-left: 10px;
+        }
+        .zForm {
+          button {
+            height: 30px;
+            font-size: 12px !important;
+            line-height: 30px;
+            padding-left: 8px;
+            padding-right: 8px;
+          }
+          span {
+            font-size: 12px !important;
+          }
+          span.btnRight {
+            float: left;
+          }
+          .zInput {
+            width: 100px !important;
+            height: 28px;
+            line-height: 28px;
+          }
+          .zgroup {
+            height: 30px;
+          }
+          .zSelect {
+            float: left;
+            width: 106px;
+          }
+        }
+        .zTable {
+          clear: both;
+          overflow: auto;
+          padding-top: 15px;
+          .elTable {
+            height: 82%;
+            .el-table td {
+              padding: 4px 0;
+            }
+          }
+        }
+      }
+    }
+  }
+  @media screen and (max-width: 1366px) {
+    #plicelist .mRightTwo .el-dialog .el-dialog__body{
+      padding: 24px 24px 10px;
+    }
+    #plicelist {
+      .mRightTwo {
+        .paddingLeft {
+          padding-left: 10px;
+        }
+        .zForm {
+          button {
+            height: 30px;
+            font-size: 12px !important;
+            line-height: 30px;
+            padding-left: 5px;
+            padding-right: 5px;
+          }
+          span {
+            font-size: 12px !important;
+          }
+          span.btnRight {
+            float: left;
+          }
+          .zInput {
+            width: 80px !important;
+            height: 28px;
+            line-height: 28px;
+          }
+          .zgroup {
+            height: 30px;
+          }
+          .zSelect {
+            float: left;
+            width: 104px;
+          }
+        }
+        .el-select-dropdown__item {
+          font-size: 12px;
+        }
+      }
+
+    }
+  }
+  /* 弹窗样式重置 */
+  .block-inline{
+    width: 100%;
+  }
+  .block .el-input__inner{
+    height: 36px;
+    margin: 2px 0;
+    line-height: 36px;
+    border: 1px solid #3b4872;
+  }
+  .block .el-input__inner{
+    -webkit-appearance: none;
+    background-color: #2a3558;
+    background-image: none;
+    box-sizing: border-box;
+    color: #eee;
+    display: inline-block;
+    font-size: inherit;
+    outline: 0;
+    padding: 0 15px;
+    transition: border-color .2s cubic-bezier(.645,.045,.355,1);
+    width: 100%;
+  }
+  .formTable{
+    padding: 2px 4px;
+    background: #4a567c;
+    margin-bottom: 20px;
+  }
+  .block .el-form-item__label{
+    height: 36px;
+    margin: 2px 0;
+    line-height: 36px;
+    border: 1px solid #3b4872;
+  }
+  .infoMsg{
+    padding-left: 9px;
+    display: inline-block;
+    margin-top: 10px;
+  }
+  .checkboxBg{
+    height: 34px;
+    margin: 2px 0;
+    line-height: 34px;
+    padding-left: 12px;
+    background: #2a3558;
+    border: 1px solid #3b4872;
+    width:100%;
+    box-sizing: border-box;
+  }
+  .textarea{
+    clear: both;
+    width: 100%;
+    height: 70px;
+    background: #4a567c;
+    font-size: 14px;
+    padding: 10px;
+  }
+  /* 弹窗详情 左右 */
+  #zDialogtex #detailW2{
+    overflow: hidden;
+  }
+  #detailW2 li{
+    width: 50%!important;
+    margin: 0;
+  }
+</style>

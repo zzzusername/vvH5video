@@ -1,0 +1,990 @@
+	* {
+  margin: 0;
+  padding: 0;
+/*  color: #fff;*/
+  border: none;
+  outline: none;
+  list-style: none;
+  color: #FFFFFF;
+}
+body{
+
+}
+li {
+  list-style: none;
+}
+
+a {
+  text-decoration: none;
+}
+
+input,
+button {
+  outline: none;
+}
+
+input::-webkit-input-placeholder,
+textarea::-webkit-input-placeholder {
+  color: #fff;
+}
+input:-moz-placeholder,
+textarea:-moz-placeholder {
+  color: #fff;
+}
+input::-moz-placeholder,
+textarea::-moz-placeholder {
+  color: #fff;
+}
+input:-ms-input-placeholder,
+textarea:-ms-input-placeholder {
+  color: #fff;
+}
+/*login*/
+
+.loginBody {
+  font-family: "微软雅黑", arial;
+  background: url(../../src/assets/login.jpg) repeat-x center top;
+  background-size: cover;
+}
+
+.wraper {
+  max-width: 1200px;
+  min-width: 800px;
+  margin: 0 auto;
+  top: 0;
+}
+
+.loginTitle {
+  color: #fff;
+  height: 216px;
+  margin: 0 auto;
+  font-size: 21px;
+  overflow: hidden;
+  text-align: center;
+  text-indent: -42px;
+  line-height: 202px;
+  background: url(../../src/assets/titleBg.png) no-repeat bottom center;
+  background-size: contain;
+}
+
+.loginBox {
+  width: 83%;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+.loginBg {
+  width: 52%;
+  padding-top: 42px;
+}
+
+.loginBg img {
+  width: 100%;
+}
+
+.loginMain {
+  float: right;
+  width: 32.2%;
+  margin: 100px 65px 0 0;
+  background: rgba(72, 83, 123, 0.6);
+  padding: 40px 0px 70px;
+}
+
+.loginForm {
+  width: 78%;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+.logo {
+  width: 45.2%;
+  margin: 0 auto;
+  overflow: hidden;
+  padding-bottom: 11%;
+}
+
+.logo img {
+  width: 100%;
+}
+
+.inputBg {
+  overflow: hidden;
+  background: #fff;
+  border-radius: 3px;
+  margin-bottom: 5%;
+  padding: 9px 0px 9px 13px;
+}
+
+.inputBg span {
+  float: left;
+  width: 16px;
+  height: 17px;
+  overflow: hidden;
+}
+
+.inputBg input {
+  color: #777;
+  float: left;
+  font-size: 14px;
+
+  margin-left: 10px;
+  line-height: 18px;
+  width: 200px;
+}
+
+/* .verificationCode {
+  display: none;
+
+  overflow: hidden;
+} */
+
+.verificationCode input {
+  color: #777;
+  float: left;
+  width: 50%;
+  height: 35px;
+  font-size: 14px;
+  line-height: 35px;
+  text-indent: 13px;
+  border-radius: 3px;
+  /*margin-right: 4.3%;*/
+}
+
+.code {
+  margin-left: 24px;
+  float: left;
+  width: 38%;
+  height: 35px;
+  overflow: hidden;
+  /*margin-right: 4.3%;*/
+  background: #1c1e35;
+}
+
+.J_codeimg {
+  color: #f0f0f0;
+  width: 100%;
+  height: 35px;
+  padding-left: 12%;
+  font-size: 19px;
+}
+
+.refresh {
+  float: left;
+  width: 16.8%;
+  height: 25px;
+  display: block;
+  cursor: pointer;
+  overflow: hidden;
+  text-align: center;
+  background: #1c1e35;
+  padding: 2% 0px;
+}
+
+.refresh img {
+  width: 60%;
+}
+
+.errorInfo {
+  color: #ebeffd;
+  height: 38px;
+  font-size: 14px;
+  /* overflow: hidden; */
+  line-height: 38px;
+  display: inline-block;
+}
+
+.errorInfo span {
+  float: left;
+  color: #f00;
+  height: 38px;
+  /* overflow: hidden; */
+  line-height: 44px;
+  padding: 0px 10px;
+}
+
+.submit {
+  overflow: hidden;
+}
+
+.submit input {
+  color: #fff;
+  width: 100%;
+  height: 36px;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 36px;
+  border-radius: 3px;
+  text-align: center;
+  background: #57e180;
+}
+
+.Copyright {
+  color: #ebeffd;
+  height: 50px;
+  font-size: 12px;
+  line-height: 50px;
+  text-align: center;
+  background: #1c203a;
+}
+
+/*index*/
+.wrapper {
+  /*width: 1920px;*/
+  max-width: 1920px;
+  min-width: 1280px;
+  max-height: 1080px;
+  margin: 0 auto;
+  overflow: hidden;
+  font-family: "微软雅黑", arial;
+  background: #232a44 url(../../src/assets/bodybg.png) no-repeat right top;
+  background-size: cover;
+}
+
+.head {
+  height: 55px;
+  overflow: hidden;
+  line-height: 54px;
+  background: url(../../src/assets/indexTitle.jpg) no-repeat;
+}
+
+.user {
+  float: right;
+  font-size: 14px;
+  padding-right: 40px;
+}
+
+.user i {
+  float: right;
+  cursor: pointer;
+  font-size: 18px;
+  margin-left: 14px;
+}
+
+.userImg {
+  float: left;
+  width: 32px;
+  height: 32px;
+  overflow: hidden;
+  border-radius: 50%;
+  margin: 13px 12px 0 0;
+}
+
+.userImg img {
+  width: 100%;
+}
+
+.indexlogo {
+  font-size: 16px;
+  padding-left: 11px;
+}
+
+.indexlogo span {
+  float: left;
+  padding-right: 7px;
+  display: inline-block;
+}
+
+.indexlogo span img {
+  width: 24px;
+  padding-top: 16px;
+  display: inline-block;
+}
+
+.main {
+  overflow: hidden;
+}
+
+.mRight {
+  float: left;
+  width: 88%;
+  /*width: 1739px;*/
+  overflow: hidden;
+  padding: 12px 0px 0px 12px;
+}
+
+.mrLeft {
+  float: left;
+  width: 43.2%;
+  /*width: 742px;*/
+}
+
+.tableBox {
+  width: 85.4%;
+  /*width: 616px;*/
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+.tableTitle {
+  height: 18px;
+  line-height: 18px;
+  margin: 5.1% 0 3.25%;
+  border-left: 2px #57e17c solid;
+}
+
+.tableTitle li {
+  float: left;
+  font-size: 14px;
+  text-align: center;
+}
+
+.tableTitle li:nth-child(1),
+.table table td:nth-child(1) {
+  width: 26.2%;
+}
+
+.tableTitle li:nth-child(2),
+.table table td:nth-child(2) {
+  width: 32.5%;
+}
+
+.tableTitle li:nth-child(3),
+.table table td:nth-child(3) {
+  width: 24.5%;
+}
+
+.tableTitle li:nth-child(4),
+.table table td:nth-child(4) {
+  width: 16.2%;
+}
+
+.table {
+  height: 87.5%;
+  overflow: hidden;
+  margin-bottom: 6.5%;
+}
+
+.table table {
+  width: 100%;
+  border-right: 1px #4c567c solid;
+  border-bottom: 1px #4c567c solid;
+}
+
+.table table tr {
+  height: 32px;
+  line-height: 32px;
+}
+
+.table table td {
+  color: #ebeffd;
+  font-size: 12px;
+  text-align: center;
+  border-top: 1px #4c567c solid;
+  border-left: 1px #4c567c solid;
+}
+
+.mrLblock {
+  /*width: 718px;*/
+  width: 96.7%;
+  height: 47%;
+  margin: 12px;
+  overflow: hidden;
+  display: inline-block;
+}
+
+.boxShadow {
+  border-radius: 3px;
+  box-shadow: 0px 0px 26px #01060e;
+  background: linear-gradient(-18deg, #424e76, #273256);
+  background: -webkit-linear-gradient(-18deg, #424e76, #273256);
+  background: -o-linear-grad -ient(-18deg, #424e76, #273256);
+  background: -moz-linear-gradient(-18deg, #424e76, #273256);
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#424e76', endColorstr='#273256',GradientType=0 );
+}
+
+.mrCenter {
+  float: left;
+  width: 24%;
+  overflow: hidden;
+}
+
+.centerBox {
+  height: 94.5%;
+  margin: 12px;
+}
+
+.mrRight {
+  float: left;
+  /*width: 554px;*/
+  width: 32%;
+}
+
+.mrCblock {
+  height: 33%;
+}
+
+.mrRblock {
+  /*width: 718px;*/
+  width: 96.7%;
+  height: 47%;
+  margin: 12px;
+  overflow: hidden;
+  display: inline-block;
+}
+
+.main .mLeft .navMenu .MyOption {
+  color: #fff;
+  background: #161d33;
+
+}
+
+.Showloading {
+  width: 85%;
+  height: 395px;
+  margin: 0 auto;
+}
+
+.Showcentre {
+  width: 90%;
+  height: 216px;
+  margin: 0 auto;
+  margin-top: 10%;
+}
+
+.Showmedia {
+  width: 90%;
+  height: 230px;
+  margin: 0 auto;
+  margin-top: 10%;
+
+}
+
+.Showspan {
+  position: absolute;
+  left: -14px;
+  display: inline-block;
+  width: 2px;
+  height: 100%;
+  background-color: #57e17c;
+}
+
+.mRightShowspan {
+  position: relative;
+  top: 7.3%;
+  left: 7%;
+  height: 18px;
+  margin-left: 20px;
+}
+
+.mRightShowspan2 {
+  height: 18px;
+  top: 10.5%;
+}
+
+.mRightShowspan h5 {
+  height: 100%;
+  line-height: 18px;
+  font-weight: normal;
+}
+
+#line,
+#hBar {
+  width: 90%;
+  margin: 0 auto;
+  height: 400px;
+}
+
+.mrLblock {
+  position: relative;
+}
+.el-submenu .el-menu-item {
+	height: 36px;
+	line-height: 36px;
+	/* padding: 0 45px;
+	min-width: 200px */
+}
+/*lkj180517*/
+.el-input--suffix .el-input__inner{
+		height: 36px;
+  line-height: 36px;
+}
+
+
+/*媒体查询*/
+@media screen and (max-width: 1680px) {
+  .table table tr {
+    height: 31px;
+    line-height: 12px;
+  }
+}
+@media screen and (max-width: 1800px) {
+  .wraper {
+    max-width: 1126px;
+  }
+  .loginTitle {
+    height: 197px;
+    line-height: 174px;
+  }
+  .loginMain {
+    margin: 100px 60px 0 0;
+    padding: 40px 0px 70px;
+  }
+  .loginBg {
+    padding-top: 38px;
+  }
+  .verificationCode input {
+    height: 31px;
+    line-height: 31px;
+  }
+  .J_codeimg {
+    height: 31px;
+  }
+  .submit input {
+    height: 32px;
+    font-size: 14px;
+    line-height: 32px;
+  }
+  .inputBg {
+    padding: 7px 0px 7px 13px;
+  }
+  .code {
+    height: 31px;
+  }
+  .refresh {
+    height: 22px;
+  }
+  .errorInfo {
+    height: 24px;
+    font-size: 12px;
+    line-height: 24px;
+  }
+  .errorInfo span {
+    padding: 0px 7px;
+    line-height: 36px;
+  }
+  .Copyright {
+    height: 44px;
+    line-height: 44px;
+  }
+
+}
+
+@media screen and (max-width: 1620px) {
+  .wraper {
+    max-width: 875px;
+  }
+  .loginTitle {
+    height: 158px;
+    font-size: 18px;
+    text-indent: -31px;
+    line-height: 152px;
+  }
+  .loginMain {
+    margin: 82px 52px 0 0;
+    padding: 32px 0px 52px;
+  }
+  .loginBg {
+    padding-top: 35px;
+  }
+  .inputBg {
+    padding: 7px 0px 6px 13px;
+  }
+  .verificationCode input {
+    height: 30px;
+    line-height: 30px;
+  }
+  .code {
+    height: 31px;
+  }
+  .J_codeimg {
+    height: 30px;
+  }
+  .submit input {
+    height: 30px;
+    font-size: 14px;
+    line-height: 30px;
+  }
+  .refresh {
+    height: 22px;
+  }
+  .errorInfo {
+    height: 30px;
+    font-size: 12px;
+    line-height: 30px;
+  }
+  .errorInfo span {
+    padding: 0px 7px;
+    line-height: 34px;
+  }
+  .Copyright {
+    height: 40px;
+    line-height: 40px;
+  }
+  .table table tr {
+    height: 26px;
+    line-height: 12px;
+  }
+  #hBar {
+    height: 320px;
+  }
+}
+/*.mRightTwo .zForm button, .mRightThree .zForm button{*/
+  /*border-radius:10px;*/
+
+/*}*/
+/*.mRightTwo .zForm .buttonradius, .mRightThree .zForm .buttonradius{*/
+  /*border-radius:0;*/
+/*}*/
+@media screen and (max-width: 1440px)and (max-height: 900px) {
+  .el-input--suffix .el-input__inner {
+    height: 30px;
+    line-height: 30px;
+    font-size: 12px;
+  }
+  .wraper {
+    max-width: 875px;
+  }
+  .loginTitle {
+    height: 158px;
+    line-height: 146px;
+  }
+  .loginMain {
+    margin: 74px 47px 0 0;
+    padding: 30px 0px 43px;
+  }
+  .loginBg {
+    padding-top: 32px;
+  }
+  .inputBg {
+    padding: 6px 0px 5px 9px;
+  }
+  .verificationCode input {
+    height: 28px;
+    line-height: 28px;
+  }
+  .code {
+    height: 28px;
+  }
+  .J_codeimg {
+    height: 28px;
+  }
+  .submit input {
+    height: 28px;
+    font-size: 14px;
+    line-height: 28px;
+  }
+  .refresh {
+    height: 21px;
+  }
+  .errorInfo {
+    height: 28px;
+    font-size: 12px;
+    line-height: 28px;
+  }
+  .errorInfo span {
+    padding: 0px 7px;
+    line-height: 34px;
+  }
+  .Copyright {
+    height: 38px;
+    line-height: 38px;
+  }
+}
+@media screen and (max-width: 1366px) {
+  #hBar {
+    height: 260px;
+  }
+}
+@media screen and (max-width: 1281px) {
+  .wraper {
+    max-width: 800px;
+  }
+  .loginTitle {
+    height: 144px;
+    font-size: 16px;
+    text-indent: -30px;
+    line-height: 132px;
+  }
+  .loginMain {
+    margin: 68px 44px 0 0;
+    padding: 22px 0px 37px;
+  }
+  .loginBg {
+    padding-top: 30px;
+  }
+  .inputBg {
+    padding: 5px 0px 5px 9px;
+  }
+  .verificationCode input {
+    height: 27px;
+    line-height: 27px;
+    font-size: 12px;
+  }
+  .code {
+    margin-left: 20px;
+    height: 27px;
+  }
+  .J_codeimg {
+    height: 27px;
+    font-size: 12px;
+  }
+  .submit input {
+    height: 27px;
+    font-size: 14px;
+    line-height: 26px;
+  }
+  .refresh {
+    height: 20px;
+  }
+  .errorInfo {
+    height: 27px;
+    line-height: 27px;
+  }
+  .errorInfo span {
+    padding: 0px 7px;
+    line-height: 32px;
+  }
+  .Copyright {
+    height: 34px;
+    line-height: 34px;
+  }
+  .mrLblock,
+  .mrRblock {
+    height: 46%;
+  }
+  #hBar {
+    height: 340px;
+  }
+}
+
+/*媒体查询*/
+
+
+@media screen and (max-width: 1680px) and (max-height: 1050px) {
+  .table table tr {
+    height: 31px;
+    line-height: 12px;
+  }
+}
+
+
+@media screen and (max-width: 1440px) {
+  #hBar {
+    width: 90%;
+    margin: 0 auto;
+    height: 320px;
+  }
+}
+
+
+@media screen and (max-width: 1440px) {
+  .wraper {
+    max-width: 875px;
+  }
+ #hBar {
+    width: 90%;
+    margin: 0 auto;
+    height: 340px;
+  }
+  .loginTitle {
+    height: 158px;
+    line-height: 146px;
+  }
+  .loginMain {
+    margin: 74px 47px 0 0;
+    padding: 30px 0px 43px;
+  }
+  .loginBg {
+    padding-top: 32px;
+  }
+  .inputBg {
+    padding: 6px 0px 5px 9px;
+  }
+  .verificationCode input {
+    height: 28px;
+    line-height: 28px;
+  }
+  .code {
+    height: 28px;
+  }
+  .J_codeimg {
+    height: 28px;
+  }
+  .submit input {
+    height: 28px;
+    font-size: 14px;
+    line-height: 28px;
+  }
+  .refresh {
+    height: 21px;
+  }
+  .errorInfo {
+    height: 28px;
+    font-size: 12px;
+    line-height: 28px;
+  }
+  .errorInfo span {
+    padding: 0px 7px;
+    line-height: 34px;
+  }
+  .Copyright {
+    height: 38px;
+    line-height: 38px;
+  }
+}
+ @media screen and (max-width: 1440px)and (max-height: 900px){
+ 	#hBar {
+    width: 90%;
+    margin: 0 auto;
+    height: 320px;
+  }
+   .inputBg input {
+
+     margin-left: 10px;
+     line-height: 18px;
+     width: 160px;
+   }
+
+ }
+  @media screen and (max-width: 1440px) {
+    .table table tr {
+      height: 26px;
+      line-height: 11px;
+      /*font-size:12px;-webkit-transform:scale(0.8)*/
+    }
+  }
+@media screen and (max-width: 1366px) {
+  .table table tr {
+    height: 20px;
+    line-height: 10px;
+  }
+	.el-input--suffix .el-input__inner {
+    height: 30px;
+    line-height: 30px;
+    font-size: 12px;
+}
+  .inputBg input {
+
+    margin-left: 10px;
+    line-height: 18px;
+    width: 145px;
+  }
+	.el-submenu .el-menu-item {
+	height: 30px;
+	line-height: 30px;
+	/* padding: 0 45px;
+	min-width: 200px */
+}
+  .indexlogo {
+    font-size: 14px;
+    padding-left: 11px;
+  }
+  .indexlogo span img {
+    padding-top: 10px;
+    display: inline-block;
+  }
+  .out {
+    float: left;
+    width: 18px;
+    height: 18px;
+    display: block;
+    overflow: hidden;
+    line-height: 18px;
+    margin: 10px 0px 0px 10px;
+  }
+  .head {
+    height: 40px;
+    overflow: hidden;
+    line-height: 40px;
+
+  }
+  .userImg {
+    float: left;
+    width: 30px;
+    height: 30px;
+    overflow: hidden;
+    border-radius: 50%;
+    margin: 5px 10px 0 0;
+  }
+  #hBar {
+    width: 90%;
+    margin: 0 auto;
+    height: 240px;
+  }
+  .zmainBox .el-input--suffix .el-input__inner {
+    height: 22px;
+    line-height: 22px;
+    border: none;
+  }
+}
+@media screen and (max-width: 1281px) {
+	*{
+		font-size: 10px;
+	}
+  .wraper {
+    max-width: 800px;
+  }
+  .loginTitle {
+    height: 144px;
+    font-size: 16px;
+    text-indent: -30px;
+    line-height: 132px;
+  }
+  .loginMain {
+    margin: 68px 44px 0 0;
+    padding: 22px 0px 37px;
+  }
+  .loginBg {
+    padding-top: 30px;
+  }
+  .inputBg {
+    padding: 5px 0px 5px 9px;
+  }
+  .verificationCode input {
+    height: 27px;
+    line-height: 27px;
+    font-size: 12px;
+  }
+  .code {
+    margin-left: 20px;
+    height: 27px;
+  }
+  .J_codeimg {
+    height: 27px;
+    font-size: 12px;
+  }
+  .submit input {
+    height: 27px;
+    font-size: 14px;
+    line-height: 26px;
+  }
+  .refresh {
+    height: 20px;
+  }
+  .errorInfo {
+    height: 27px;
+    line-height: 27px;
+  }
+  .errorInfo span {
+    padding: 0px 7px;
+    line-height: 32px;
+  }
+  .Copyright {
+    height: 34px;
+    line-height: 34px;
+  }
+
+
+}
+
+@media screen and (max-width: 1280px) and (max-height: 1024px) {
+
+
+  #hBar{
+    width: 310px;
+    height: 320px;
+  }
+}
+@media screen and (max-width: 1280px) and (max-height: 720px) {
+
+  #hBar{
+    width: 310px;
+    height: 220px;
+  }
+
+}
+  .inputdate .el-input--suffix .el-input__inner {
+    border: none;
+    height: 34px;
+    line-height: 34px;
+  }

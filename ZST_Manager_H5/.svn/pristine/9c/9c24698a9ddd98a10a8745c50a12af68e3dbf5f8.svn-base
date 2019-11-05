@@ -1,0 +1,1941 @@
+<template>
+  <div class="mRight" id="menuBox">
+    <div class="mRightTwo">
+      <div class="zForm">
+        <span>企业名称:</span>
+        <input class="zInput" type="text" placeholder />
+        <span>联系人或者手机号:</span>
+        <input class="contactsInput" type="text" placeholder />
+        <button @click="queryBoxStatusList">查询</button>
+        <button @click="allBoxStatusList">全部</button>
+        <span class="btnRight">
+          <button @click="AEenterpriseClick(true)">新增</button>
+        </span>
+      </div>
+      <div class="zTable">
+        <div class="elTable">
+          <vue-scroll :ops="ops" ref="vs">
+            <div class="scrollbox">
+              <el-table
+                ref="multipleTable"
+                :data="BoxStatus"
+                tooltip-effect="dark"
+                style="width: 100%"
+              >
+                <el-table-column type="index" label="序号"></el-table-column>
+                <el-table-column prop="name" label="企业名称"></el-table-column>
+                <el-table-column prop="region_name" label="地区"></el-table-column>
+                <el-table-column prop="contacts_names" label="联系人"></el-table-column>
+                <el-table-column prop="contacts_phonenums" label="联系人手机号"></el-table-column>
+                <el-table-column prop="createtime" label="添加时间" width="180"></el-table-column>
+
+                <el-table-column label="操作">
+                  <template slot-scope="scope">
+					 
+                    <a href="javascript:;" class="ml5">
+						 <span @click="AEenterpriseClick(false,scope.row)" >编辑</span>
+                      <!-- <img @click="AEenterpriseClick(false,scope.row)" src="../../assets/edit2.png" alt /> -->
+                    </a>
+                    &nbsp;&nbsp;
+                    <a
+                      href="javascript:;"
+                      @click="temporaryAccountclick(scope.row,)"
+                      class="ml5"
+                    >
+                      <span>临时账号</span>
+                    </a>&nbsp;&nbsp;
+                    <a @click="unregister(scope.row)" href="javascript:;" class="ml5">
+                      <span>注销</span>
+                    </a>
+                  </template>
+                </el-table-column>
+              </el-table>
+            </div>
+          </vue-scroll>
+        </div>
+
+        <el-pagination
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+          :page-size="pagesize"
+          :current-page.sync="currentPage"
+          layout="total, prev, pager, next, jumper"
+          :total="total"
+        ></el-pagination>
+      </div>
+    </div>
+	<!-- 新增／编辑弹窗 -->
+    <div id="menuAddModel">
+      <el-dialog
+        :close-on-click-modal="false"
+        :title="popTitle"
+        :visible.sync="dialogTableVisibleadd"
+		:before-close="cancelPopclick"
+      >
+        <el-form :model="addenterprise" ref="addenterprise" label-width="30%" class="demo-ruleForm">
+          <div class="formTable">
+            <div class="block">
+              <el-form-item label="企业名称：" :rules="[{ required: true, message: ' '}]" prop="name">
+                <el-input
+                  v-model="addenterprise.enterprise_name"
+                  maxlength="50"
+                  class="corporate_name"
+                ></el-input>
+              </el-form-item>
+            </div>
+
+            <div class="block" id="activeCity_box1">
+				<el-form-item label="地区：" :rules="[{ required: true, message: ' '}]" prop="url">
+                	<div class="checkboxBg">
+					<div v-html="addressHtml2" class="framework" @click="closedButtonclick"></div>
+				</div>
+				</el-form-item>
+            </div>
+			<!-- 地区 -->
+			<div id="showtreebox1" v-show="closedButton">
+				<div class="showtreeboxzTree" di="showtreeboxdisplaybox">
+					<el-tabs v-model="activeCity" type="card" @tab-click="handleClickCity" witth="300">
+					<el-tab-pane width="80" height="300" label="全国" name="Country">
+						<div>
+						<ul id="example-1">
+							<li
+							v-for="item in CountryList"
+							:key="item.index"
+							@click="getid(item)"
+							>{{ item.name }}</li>
+						</ul>
+						</div>
+					</el-tab-pane>
+					<el-tab-pane width="80" height="300" label="省" name="province">
+						<vue-scroll :ops="ops1" ref="vs">
+						<div class="TerminaLeft">
+							<ul id="exampl">
+							<li
+								v-for="item in terminalList"
+								:key="item.index"
+								@click="getprovince(item)"
+							>{{ item.name }}</li>
+							</ul>
+						</div>
+						</vue-scroll>
+					</el-tab-pane>
+					<el-tab-pane
+						width="80"
+						id="city"
+						height="300"
+						label="市"
+						name="city"
+						:disabled="iscity"
+					>
+						<vue-scroll :ops="ops1" ref="vs">
+						<div class="TerminaLeft">
+							<ul id="example">
+							<li
+								v-for="item in cityList"
+								:key="item.index"
+								@click="getcity(item)"
+							>{{ item.name }}</li>
+							</ul>
+						</div>
+						</vue-scroll>
+					</el-tab-pane>
+					<el-tab-pane
+						width="80"
+						id="county"
+						height="300"
+						label="区"
+						name="county"
+						:disabled="icounty"
+					>
+						<vue-scroll :ops="ops1" ref="vs">
+						<div class="TerminaLeft">
+							<ul id="example-1">
+							<li
+								v-for="item in countyList"
+								:key="item.index"
+								@click="getcounty(item)"
+							>{{ item.name }}</li>
+							</ul>
+						</div>
+						</vue-scroll>
+					</el-tab-pane>
+					</el-tabs>
+				</div>
+				<div class="closedbut" @click="closedButton=false">关闭</div>
+			</div>
+			<div class="block">
+              <el-form-item
+                label="联系人："
+                prop=""
+                :rules="[{ required: true, message: ' '}]"
+              >
+                <el-input v-model="addenterprise.contacts_names" maxlength="120"></el-input>
+              </el-form-item>
+            </div>
+			<div class="block">
+              <el-form-item label="联系人手机号：" :rules="[{ required: true, message: ' '}]" prop="">
+                <el-input v-model="addenterprise.contacts_phonenums" @change="isRealNum_Add" maxlength="11"></el-input>
+              </el-form-item>
+            </div>
+            <div class="block blockUrl">
+              <el-form-item label="终端分布图地址" prop="">
+                <el-input
+                  v-model="addenterprise.terminal_distribution_map_url"
+                  maxlength="300"
+                  placeholder="如：http://10.1.24.33:3000/index?user={username}&pwd={password}&area_code={areaCode}&area_name={areaName}&xzjb={xzjb}&access_token=33333333333333333333333333333333"
+                ></el-input>
+              </el-form-item>
+            </div>
+			<div class="tabChagecont" id='tabChagecontEnterprise'>
+				<el-tabs v-model="tabName">
+					<el-tab-pane label="功能分配" name="first">
+						<el-checkbox-group v-model="addenterprise.allocated_enterprise_functions">
+							<el-checkbox v-for="item in allocated_enterprise_functions" :label="item.name" :key="item.index">{{item.comment}}</el-checkbox>
+						</el-checkbox-group>
+					</el-tab-pane>
+					<el-tab-pane label="流媒体服务器" name="second">
+						<div class="vmServercont">
+							<div class="serverLeft">
+								<el-tree 
+									:data="vmServerlistArray" 
+									:props="serverProps"
+									ref='serverTree'
+									node-key="id"
+									:load="vmServerload"
+									:render-content="renderMonitor"
+									@check-change="serverTreechange"
+									:default-checked-keys="serverTreedefaultkeys"
+									lazy
+									show-checkbox
+									>
+								</el-tree>
+							</div>
+							<div class="serverRight">
+								<span>已选数据</span>
+								<ul>
+									<li v-for='item in serverMediacheckData' :key="item.index">
+										{{item.server_name}} ( {{item.vmserver.name}} )
+									</li>
+								</ul>
+							</div>
+						</div>
+					</el-tab-pane>
+					<el-tab-pane label="监控平台服务器" name="third">
+						<el-checkbox-group v-model="addenterprise.monitor_server_ids">
+							<el-checkbox v-for="item in monitor_server_ids" :label="item.id" :key="item.index">
+								{{item.name}} ({{item.ip}}:{{item.port}})
+							</el-checkbox>
+						</el-checkbox-group>
+					</el-tab-pane>
+					<el-tab-pane label="终端通讯录同步服务器" name="fourth">
+						<span>选择终端通讯录同步服务器: </span>
+						<el-select v-model="addenterprise.terminal_server_id"  placeholder="--请选择--" style="width:400px;">
+							<el-option v-for="item in terminalServeridArray" :key="item.index" :label="item.name +' （'+ item.ip + ':' + item.port +')' " :value="item.id"></el-option>
+						</el-select>
+					</el-tab-pane>
+				</el-tabs>
+			</div>
+          </div>
+          <div class="userBtn">
+            <el-form-item>
+              <el-button type="primary" @click="savePopbtn">保存</el-button>
+              <el-button @click="cancelPopclick">取消</el-button>
+            </el-form-item>
+          </div>
+        </el-form>
+      </el-dialog>
+    </div>
+	<!-- 延期 -->
+    <div id="menucasualModel">
+      <el-dialog :close-on-click-modal="false" title="企业 - 临时账号" :visible.sync="dialogcasual">
+        <el-form :model="casuadata" ref="casuadata" label-width="38%" class="demo-ruleForm">
+          <div class="formTable">
+            <div class="block">
+              <el-form-item label="用户名" :rules="[{ required: true, message: ' '}]" prop="name">
+                <el-input v-model="casuadata.account" maxlength="50"></el-input>
+              </el-form-item>
+            </div>
+            <div class="block">
+              <el-form-item label="有效期" :rules="[{ required: true, message: ' '}]" prop="url">
+                <el-input v-model="casuadata.account_expiry" maxlength="120"></el-input>
+              </el-form-item>
+            </div>
+            <div class="block">
+              <el-form-item label="密码" :rules="[{ required: true, message: ' '}]" prop="url">
+                <el-input v-model="casuadata.password" maxlength="120"></el-input>
+              </el-form-item>
+            </div>
+          </div>
+          <div class="userBtn">
+            <el-form-item>
+              <el-button type="primary" @click="postpone_casual(casuadata)">延期</el-button>
+              <el-button @click="dialogcasual=false">取消</el-button>
+            </el-form-item>
+          </div>
+        </el-form>
+      </el-dialog>
+    </div>
+  </div>
+</template>
+<script>
+import $ from "jquery";
+import axios from "axios";
+import Nav from "../Nav.vue";
+import Index from "../Index.vue";
+import {
+  getenterpriseinfos,
+  getallenterprise_streamservers,
+  get_terminal_regions_and_departs,
+  get_terminal_region,
+  getresource_organizations,
+  getenterprise_all_functions,
+  getresource_organization_paths,
+  get_monitor_server,
+  getregisterenterprise,
+  get_unregister_enterprise,
+  getpostpone_casual_admin,
+  get_casual_admin_info,
+  getenterprise_info,
+  getmodify_enterprise,
+  get_terminal_departs
+} from "@/components/interface/Private.js";
+
+// list_assignable_monitor_servers  列出可分配的监控平台服务器
+// list_assignable_terminal_servers  列出可分配的终端通讯录同步服务器
+// enterprise_management_list_vmserver  列出流媒体管理服务器（VMServer）信息
+// enterprise_management_list_assignable_stream_servers  列出指定VMServer下的流媒体拉流服务器
+import {
+	list_assignable_monitor_servers,
+	list_assignable_terminal_servers,
+	enterprise_management_list_vmserver,
+	enterprise_management_list_assignable_stream_servers,
+} from "@/components/interface/Private.js";
+import {
+  getRegionsbyPid,
+  getRegiondetail,
+  getregion_paths
+} from "@/components/interface/common.js";
+
+var content = Nav; //在这个地方赋值一下
+var contents = Index; //在这个地方赋值一下
+var cityOptions = []; //流媒体服务器全部选项
+var treedata = [];
+
+var Valindex;
+var TreeDataId = "";
+var page = 1;
+
+export default {
+  data() {
+    return {
+		// 临时账号数据
+		casuadata: [],
+		isone: true, //终端通讯录分配是否第一次下拉
+		editisone: true, //终端通讯录分配是否第一次下拉
+		serverone: true, //监控资源分配是否第一次下拉
+		editserverone: true, //监控资源分配是否第一次下拉
+		monitorCode: "", //监控资源分配的CODE
+		closedButton: false, //是否显示地区选择TAD
+		closedButtonedit: false, //是否显示地区选择TAD
+		monitor_server_url: "",
+		allmonitoreditId: [], //复现监控资源分配
+		allterminalId: [], //复现终端通讯录分配
+		all_functions: [], //所有功能权限
+		region_full_code: "",
+		region_full_name: "",
+		editswitch: false, //编辑开关控制编辑监控终端的TERR显示
+		dialogtree_monitor: false,
+		dialogtree_monitor_edit: false,
+		dialogtree_terminal: false,
+		dialogcasual: false,
+		dialogTablepostpone: false,
+		region_name: '',
+		// CountryList: [
+		//   "全国"
+		// ],
+		CountryList: [
+		{
+			id: "110000000000",
+			pid: "000000000000",
+			name: "全国"
+		}
+		],
+		querybut: false,
+		terminalList: [], //省集合
+		cityList: [], //市集合
+		countyList: [], //区集合
+		iscity: false, //是不是显示市
+		icounty: false,
+		disabled: true,
+		medialist: [],
+		medialistedit: [],
+		Fid: "",
+		treeid: "",
+		serverid: "",
+		resolve: undefined,
+		node: undefined,
+		props: {
+		//TERR筛选条件
+		label: "name",
+		children: "children"
+		},
+		props1: {
+		//TERR筛选条件
+		label: "name",
+		children: "children"
+		},
+		casual_admin: [],
+		treeData: [],
+		dataId: "", //参数ID
+		dataparentOrgName: "", //父级名字
+		dataparentID: "", //父级ID
+		regions: [],
+		checkAll: false,
+		checkedCities: [], //流媒体服务器已选中选项
+		addressHtml2: "请选择", //下拉组织结构
+		cities: cityOptions,
+		isIndeterminate: true,
+		BoxStatus: [],
+		activeCity: "Country",
+		activeName: "first",
+		ops: {
+		vuescroll: {
+			mode: "native"
+		},
+		scrollPanel: {}
+		},
+		ops1: {
+		vuescroll: {
+			mode: "native"
+		},
+		scrollPanel: {}
+		},
+		querybut: false,
+		total: 1,
+		Types: "",
+		checked: false,
+		// 临时账号弹窗
+		dialogTableVisibleedit: false,
+		MenuDate: [],
+		currentPage: page,
+		pagesize: scopes,
+		/* 分割 */
+		// 企业新增弹窗
+		dialogTableVisibleadd: false,
+		tabName : 'first',
+		popTitle : '企业列表 - 新增',
+		savePopbtntype : true,
+		// vmServer 数据
+		serverProps : {
+			children: 'children',
+			label: 'name',
+			isLeaf : 'leaf',
+		},
+		// tree 默认勾选数组
+		serverTreedefaultkeys : [],
+		vmServerlisttreeArray : [
+			{
+				label: '一级 1',
+				children: [{
+					label: '二级 1-1',
+					children: [{
+					label: '三级 1-1-1'
+					}]
+				}]
+			},
+		],
+		vmServerlistArray : [],
+		vmServerlistvalue : '',
+		// checkout 数据
+		serverCheckarray : [],
+		serverCheckvalue : [],
+		// 右侧 列表展示 流媒体勾选数据
+		serverMediacheckData : [],
+		// 可分配功能数组
+		allocated_enterprise_functions : [],
+		// 监控数据集合
+		monitor_server_ids : [],
+		// 终端同步服务器
+		terminalServeridArray : [],
+		// 编辑／提交数据 数据集合
+		addenterprise: {
+			allocated_enterprise_functions: [],		// 可分配功能
+			assist_server_id: "",
+			contacts_names: "",
+			contacts_phonenums: "",
+			enterprise_name: "",
+			enterprise_streamservers: [],			//流媒体选择
+			monitor_server_ids: [],
+			region_code: "",
+			region_name: "",
+			terminal_distribution_map_url: "",
+			terminal_server_id: '',
+			enterprise_id: ''
+		},
+		  
+
+    };
+  },
+  mounted: function() {
+    var hei = document.documentElement.clientHeight;
+    $(".mRightTwo").css("height", hei - 178);
+
+    $(window).resize(function() {
+      var wid = document.documentElement.clientWidth,
+        hei = document.documentElement.clientHeight;
+      $(".mRightTwo").css("height", hei - 178);
+	});	
+	//	 获取初始化列表数据
+	this.getBoxStatusList();
+	// 初始化企业可分配功能权限
+	this.getInitenterpriceFun();
+	// 初始化可分配的监控数据
+	this.getInitassignableMonitorservers();
+	//   初始化 终端数据
+	this.getInitassignableTermainalServers();
+	//  初始化流媒体
+	//this.getInitvmServerdata()
+  },
+  watch: {
+	 
+    addressHtml2(val, oldVal) {
+      this.editisone = true;
+      this.isone = true;
+      this.serverone = true;
+      console.log(val, "+", oldVal);
+      if (val != "请选择") {
+        this.disabled = false;
+      } else if (val == "请选择") {
+        this.disabled = true;
+      }
+    },
+    closedButton(val, oldVal) {
+      // console.log(val, "+", oldVal)
+      if (val == false) {
+        this.dialogtree_monitor = false;
+        this.dialogtree_terminal = false;
+        this.dialogtree_monitor_edit = false;
+      } else {
+      }
+    }
+  },
+  methods: {
+	   // 判断手机号
+     isRealNum_Add(val){
+ 
+ 
+    if(!isNaN(val)){
+    
+    }else{
+       this.addenterprise.contacts_phonenums=""
+      this.$message.error('请输入数字手机号');
+
+      }
+	},
+	
+		// 初始化 流媒体服务器
+		getInitvmServerdata(){
+			console.log('更新tree')
+			enterprise_management_list_vmserver({}).then(res => {
+				if (res.status === 200 && res.data.result == "ok") {
+						let resData= res.data.data
+						resData.map( (item,index) => {
+							item.parent = true;
+							item.sort = 'serveclass'+index;
+							item.children = [];
+							item.disabled = true;
+						} )
+						this.vmServerlistArray = resData;
+				}else{
+					// 错误提示信息
+					this.$message.error(res.data.error_description);
+				}
+			});	
+		},  
+	  	// 初始化企业可分配功能
+	  	getInitenterpriceFun(){
+			getenterprise_all_functions({}).then(res => {
+				if (res.status === 200 && res.data.result == "ok") {
+						// 需要过滤下数据
+						let resData = res.data.data;
+						/* 后期可能会删除此代码 */
+						//  funReceiveLive 收看 funTransmitLive 发送  funVideoConferenceRecord 会议
+						for (let i = resData.length - 1; i >= 0; i--) {
+							if (resData[i].name == 'funReceiveLive' || resData[i].name == 'funTransmitLive' || resData[i].name == 'funVideoConferenceRecord' ) {
+								resData.splice(i, 1);
+							}
+						}
+						/* 后期可能会删除此代码 */
+						this.allocated_enterprise_functions = resData;
+				}else{
+					// 错误提示信息
+					this.$message.error(res.data.error_description);
+				}
+			});	
+		},
+		// 初始化可分配的监控数据 list_assignable_monitor_servers
+		getInitassignableMonitorservers(){
+
+			list_assignable_monitor_servers({}).then(res => {
+				if (res.status === 200 && res.data.result == "ok") {
+						this.monitor_server_ids = res.data.data;
+				}else{
+					// 错误提示信息
+					this.$message.error(res.data.error_description);
+				}
+			});	
+		},
+		// 初始化 终端数据
+		getInitassignableTermainalServers(){
+			list_assignable_terminal_servers({}).then(res => {
+				if (res.status === 200 && res.data.result == "ok") {
+						this.terminalServeridArray = res.data.data;
+				}else{
+					// 错误提示信息
+					this.$message.error(res.data.error_description);
+				}
+			});	
+		},
+		// 流媒体数据 选中 添加
+		serverCheckchange(data){
+			//console.log(data);
+			let isExistserverCode= data.server_code;
+			let isExistId = data.vmserver.ip;
+			let isExistsport = data.vmserver.port;
+			
+			let checkList =  this.serverMediacheckData;
+			if(checkList.length != 0){
+				for (let i = checkList.length - 1; i >= 0; i--) {
+					// checkList[i].server_code == isExistserverCode && checkList[i].vmserver.id == isExistId && checkList[i].vmserver.port == isExistsport 三个判断条件
+					if (checkList[i].server_code == isExistserverCode) {
+						// 取消选择
+						//console.log('取消选择')
+						checkList.splice(i, 1);
+					}else{
+						//  选择
+						//console.log('选择')
+						checkList.push(data);
+					}
+				}
+			}else{
+				checkList.push(data);
+			}
+			
+			// 赋值
+			this.serverMediacheckData = checkList;
+		},
+		// 流媒体 tree 懒加载
+		vmServerload(node, resolve){
+			/* if (node.level === 0) {
+				return resolve(this.vmServerlistArray);
+			} */
+			// 加载相应的流媒体数据  列出指定的流媒体账户
+			if (node.level >= 1){
+				this.loadStreamingmediaInfo(node,resolve)
+			}
+		},	
+		// 懒加载流媒体信息
+		loadStreamingmediaInfo(node,resolve){
+			let _this = this;
+			let objData = {
+				"vmserver_id": node.data.id
+			}
+			enterprise_management_list_assignable_stream_servers(objData).then(res => {
+				if (res.status === 200 && res.data.result == "ok") {
+						let resData = res.data.data
+						resData.map( (item) => {
+							item.name = item.server_name;
+							item.children = [];
+							item.leaf = true;
+						})
+						console.log(resData);
+						// 渲染子节点
+						resolve(resData)
+				}
+			});	
+		},
+		renderMonitor(h, { node, data, store }){
+				return (
+					<span 
+					style="flex: 1; display: flex; align-items: center; justify-content: 
+					space-between; font-size: 14px; padding-right: 8px;">
+					<span>
+						<span  class={data.sort}>{data.name}</span>
+					</span>
+					<span>
+						</span>
+					</span>
+				)
+		},
+		// 节点选中变化
+		serverTreechange(data, checked, indeterminate){
+			let _this = this;
+			// 判断是否为子节点  父节点 不考虑
+			// 子节点选中 
+			if(!data.parent){
+				if(checked){
+					// 添加
+					_this.serverMediacheckData.push(data)
+				}else{
+					// 删除
+					// 选中列表 中 删除	
+					let server_code = data.server_code
+					let checkList = _this.serverMediacheckData;
+					for(let i = checkList.length -1; i>=0 ;i--){
+						console.log(checkList[i].vmserver.id)
+						console.log(checkList[i].vmserver.port)
+						// 判断 全部等于才删除
+						if(data.server_code == checkList[i].server_code && checkList[i].vmserver.id == data.vmserver.id && checkList[i].vmserver.port == data.vmserver.port ){
+							_this.serverMediacheckData.splice(i, 1);
+						}
+					} 
+					// 赋值
+					_this.serverMediacheckData = checkList;
+				}
+			}
+		},
+		// 新增／ 编辑 按钮
+		AEenterpriseClick(type,data) {
+			console.log('新增窗口' + type);
+			// 更新 data 数据
+			
+			if(type){
+				// 新增
+				this.dialogTableVisibleadd = true;
+				this.savePopbtntype = true;
+				this.getInitvmServerdata();  
+
+			}else{
+				// 编辑
+				this.popTitle = '企业列表 - 编辑'
+				this.savePopbtntype = false;
+				// 查询编辑 详情  getenterprise_info
+				let objData = {
+					"enterprise_id": data.id,
+				}
+				getenterprise_info(objData).then(res => {
+					if (res.status === 200 && res.data.result == "ok") {
+						console.log(res.data.data);
+						let rD = res.data.data;
+						// 编辑 赋值
+						this.addenterprise.allocated_enterprise_functions = rD.allocated_enterprise_functions;
+						this.addenterprise.contacts_names = rD.contacts_names;
+						this.addenterprise.contacts_phonenums = rD.contacts_phonenums;
+						this.addenterprise.enterprise_name = rD.enterprise_name;
+						this.addenterprise.monitor_server_ids = rD.monitor_server_ids;
+						// 地区 相关
+						this.addressHtml2 = rD.region_full_name;					// 展示信息
+						this.addenterprise.region_code = rD.region_code;
+						this.addenterprise.region_name = rD.region_name;
+
+						this.Fid = rD.region_code;
+						this.region_name = rD.region_name;
+
+						this.addenterprise.terminal_distribution_map_url = rD.terminal_distribution_map_url;
+						this.addenterprise.terminal_server_id = rD.terminal_server_id;
+						this.addenterprise.enterprise_id = rD.enterprise_id;
+
+						// 流媒体服务器 列表数据  已 勾选的 数组
+						this.serverMediacheckData = rD.stream_servers;
+						// 勾选数组集合 先清空在赋值
+						this.serverTreedefaultkeys = [];
+						rD.stream_servers.map( (item) => {
+							this.serverTreedefaultkeys.push(item.id);
+						})
+
+						console.log(this.serverTreedefaultkeys);
+						this.dialogTableVisibleadd = true;
+
+						this.getInitvmServerdata();  
+					}else{
+						// 错误提示信息
+						this.$message.error(res.data.error_description);
+					}
+				});	
+			}
+		},
+		// 保存按钮
+		savePopbtn(){
+
+			// 区分编辑还是新增
+			if(this.savePopbtntype){
+				// 新增
+				//console.log('新增');
+				let objData = this.parameter();
+				getregisterenterprise(objData).then(res => {
+					if (res.status === 200 && res.data.result == "ok") {
+							//console.log(res);
+							this.$message.success("注册企业成功");
+							this.cancelPopclick();
+							// 更新列表
+							this.getBoxStatusList();
+					}else{
+						// 错误提示信息
+						this.$message.error(res.data.error_description);
+					}
+				});	
+			}else{
+				// 编辑
+				let objData = this.parameter();
+				
+				objData.enterprise_id = this.addenterprise.enterprise_id;
+				getmodify_enterprise(objData).then(res => {
+					if (res.status === 200 && res.data.result == "ok") {
+							//console.log(res);
+							this.$message.success("编辑企业成功");
+							this.cancelPopclick();
+							// 更新列表
+							this.getBoxStatusList();
+					}else{
+						// 错误提示信息
+						this.$message.error(res.data.error_description);
+					}
+				});	
+				
+			}
+		},
+		parameter(){
+			let objData = {
+				"allocated_enterprise_functions": this.addenterprise.allocated_enterprise_functions,
+				"contacts_names": this.addenterprise.contacts_names,
+				"contacts_phonenums": this.addenterprise.contacts_phonenums,
+				"enterprise_name": this.addenterprise.enterprise_name,
+				"terminal_distribution_map_url": this.addenterprise.terminal_distribution_map_url,
+				"monitor_server_ids": this.addenterprise.monitor_server_ids,
+				"terminal_server_id": this.addenterprise.terminal_server_id,
+				"stream_server_ids" : [],
+			}
+			console.log(this.Fid)
+			console.log(this.region_name)
+			// 处理地区数据
+			this.addenterprise.region_code = this.Fid
+			// 地区是全的话。新增存值,表格
+			if (this.Fid == "000000000000") {
+				this.addenterprise.region_codee = "000000000000";
+				this.addenterprise.region_name  = "全国";
+			} else {
+				this.addenterprise.region_code = this.Fid;
+				this.addenterprise.region_name = this.region_name;
+			}
+
+			objData.region_code=  this.Fid;
+			objData.region_name = this.region_name;
+
+
+			console.log(objData)
+
+			// 分配的流媒体拉流服务器
+			this.serverMediacheckData.map( (item) => {
+				objData.stream_server_ids.push(item.id)
+			});
+			return objData;
+		},
+		// 取消弹窗 清空数据
+		cancelPopclick(){
+			this.dialogTableVisibleadd = false;
+			// 清空数据
+			this.addenterprise.allocated_enterprise_functions = [];
+			this.addenterprise.contacts_names = '';
+			this.addenterprise.contacts_phonenums = '';
+			this.addenterprise.enterprise_name = '';
+			this.addenterprise.monitor_server_ids = [];
+			// 地区相关
+			this.addressHtml2 = '请选择';
+			this.addenterprise.region_code = '';
+			this.addenterprise.region_name = '';
+			// 地区 展示 弹窗
+			this.closedButton = false;
+
+			this.addenterprise.terminal_distribution_map_url = '';
+			this.addenterprise.terminal_server_id = '';
+			this.addenterprise.enterprise_id = '';
+			// tab
+			this.tabName = 'first';
+			// 已选数据列表
+			this.serverMediacheckData = [];
+			// 流媒体勾选数据
+			this.serverCheckarray = [];
+			this.serverCheckvalue = '';
+			// 流媒体下拉列表数据
+			this.vmServerlistvalue = '';
+			// tree 默认勾选数据  
+			//this.serverTreedefaultkeys = [];
+		},
+		/* 分割 */
+		//注销企业操作
+		unregister(index) {
+		var _this = this;
+		this.$confirm("是否执行注销企业操作?", "消息", {
+				confirmButtonText: "确定",
+				cancelButtonText: "取消",
+				type: "warning"
+			}).then(() => {
+				var delDate = {
+					enterprise_id: index.id
+				};
+
+				_this.unregister_enterprise(delDate);
+				})
+			.catch(() => {
+				this.$message({
+					type: "info",
+					message: "已取消注销企业"
+				});
+			});
+		},
+		//临时账号
+		temporaryAccountclick(scope) {
+			var objData = {
+				enterprise_id: scope.id
+			};
+			var _this = this;
+			get_casual_admin_info(objData).then(function(res) {
+				if (res.status === 200 && res.data.result == "ok") {
+					_this.casuadata = res.data.data;
+					_this.casuadata.account_expiry = _this.timestampToTime(
+					_this.casuadata.account_expiry
+					);
+					_this.dialogcasual = true;
+				} else {
+					_this.$message({
+					message: "系统错误：错误指令" + res.data.error_description, //后台没有message
+					type: "info"
+					});
+				}
+				}).catch(function(error) {
+				_this.$message({
+					message: "系统错误",
+					type: "success"
+				});
+				});
+		},
+		// 注销企业 ajax 函数
+		unregister_enterprise(e) {
+		var _this = this;
+		get_unregister_enterprise(e).then(function(res) {
+			if (res.status === 200 && res.data.result == "ok") {
+				_this.$message({
+				message: "注销企业成功",
+				type: "success"
+				});
+				_this.getBoxStatusList();
+			}
+			})
+			.catch(function(error) {
+			console.log(error);
+			});
+		},
+		// 点击地区触发
+		closedButtonclick() {
+			this.closedButton = true
+		},
+		//点击省TAB
+		handleClickCity(tab, event) {
+		if (tab.name == "province") {
+			this.postprovince();
+		}
+		},
+		// 获取下级行政区域
+		postlist(list, type) {
+		let _this = this;
+		let URL = ServerUrl;
+
+		getRegionsbyPid(list).then(function(res) {
+			if (res.status === 200 && res.data.result == "ok") {
+				// debugger
+
+				var list = res.data.data.regions;
+				_this.regions = list;
+				//            console.log(list)
+				if (list[0].name == "市辖区") {
+				var listpar = {
+					pid: list[0].id,
+					timestamp: 0
+				};
+				_this.postlist(listpar, 1);
+				return;
+				}
+				var functionslist = [];
+				for (var o in list) {
+				functionslist.push(list[o]);
+				}
+				if (type == 1) {
+				_this.countyList = functionslist;
+				} else if (type == 2) {
+				_this.cityList = functionslist;
+				} else {
+				_this.terminalList = functionslist;
+				}
+			}
+			if (res.data.result == "error") {
+				_this.$message({
+				message: res.data.error_description,
+				type: "warning"
+				});
+				//            console.log(res);
+			}
+			})
+			.catch(function(error) {
+			console.log(error);
+			});
+		},
+		// 获取 全国节点
+		postprovince() {
+			var par = {
+			pid: "000000000000",
+			timestamp: 0
+			};
+			this.postlist(par, 0);
+		},
+		//d点击全国
+		getid(val) {
+			this.addressHtml2 = val.name;
+			this.Fid = "000000000000";
+			this.region_name = val.name;
+		},
+		//点击省
+		getprovince(value) {
+			this.region_name = value.name;
+			//        console.log("我是点的" + this.region_name)
+			//        this.addressHtml2 = value;
+
+			var type;
+			if (
+				value.name == "北京市" ||
+				value.name == "天津市" ||
+				value.name == "上海市" ||
+				value.name == "重庆市"
+			) {
+				this.activeCity = "county";
+				type = 1;
+				this.icounty = false;
+			} else {
+				this.activeCity = "city";
+				type = 2;
+				this.iscity = false;
+			}
+
+			let _this = this;
+			let URL = ServerUrl;
+			var nowid = value.id;
+			this.Fid = nowid;
+
+			var provinceparameter = {
+				pid: nowid,
+				timestamp: 0
+			};
+			this.postlist(provinceparameter, type);
+			this.Regiondetail();
+		},
+		//点击区
+		getcounty(value) {
+			//        console.log(value)
+			this.region_name = value.name;
+			//        console.log("我是点的" + this.region_name)
+			var nowid = value.id;
+
+			// for (var k in this.regions) {
+			//   if (this.regions [k].name == value) {
+			//     nowid = this.regions [k].id
+
+			//   }
+
+			// }
+			this.Fid = nowid;
+			//        this.addressHtml2 = this.addressHtml2 + "/" + value;
+			this.closedButton = false;
+			this.Regiondetail();
+		},
+		//点击市
+		getcity(value) {
+			this.region_name = value.name;
+			//        this.addressHtml2 = this.addressHtml2 + "/" + value;
+			//        console.log("我是点的" + this.region_name)
+			var type;
+			this.activeCity = "county";
+			let _this = this;
+			let URL = ServerUrl;
+			var nowid = value.id;
+			this.Fid = nowid;
+			var provinceparameter = {
+				pid: nowid,
+				timestamp: 0
+			};
+			this.postlist(provinceparameter, 1);
+			this.Regiondetail();
+		},
+		// 渲染 县级地区
+		Regiondetail() {
+		var _this = this;
+		var Regiondetaillist = {
+			id: this.Fid,
+			timestamp: 0
+		};
+
+		getRegiondetail(Regiondetaillist).then(function(res) {
+			if (res.status === 200 && res.data.result == "ok") {
+
+				var ary = res.data.data.region_details[0].names;
+				var str = ary.split("|");
+
+				str.forEach(function(ele, i) {
+				if (i == 0) {
+					_this.addressHtml2 = ele;
+				} else {
+					_this.addressHtml2 = _this.addressHtml2 + "/" + ele;
+				}
+				});
+
+				//            this.addressHtml2 = value;
+			}
+			if (res.data.result == "error") {
+				_this.$message({
+				message: res.data.error_description,
+				type: "warning"
+				});
+			}
+			}).catch(function(error) {
+				console.log(error);
+			});
+		},
+		//获取数据列表列出企业信息
+		getBoxStatusList() {
+			let _this = this;
+			let URL = ServerUrl;
+			var pageSize = this.pagesize,
+				currentPage = this.currentPage,
+				serverName = $(".zInput").val();
+			var userparameter = {
+				page_number: currentPage - 1,
+				page_size: pageSize
+			};
+			getenterpriseinfos(userparameter).then(function(res) {
+				if (res.status === 200 && res.data.result == "ok") {
+					var list = res.data.data.list;
+					//            console.log(list)
+					let totalall = res.data.data.page_total_items;
+					_this.total = totalall;
+					for (var i in list) {
+					if (list[i].is_new_public === true) {
+						list[i].is_new_public_isshow = "first";
+					} else {
+						list[i].is_new_public_isshow = "no";
+					}
+
+					list[i].createtime = _this.timestampToTime(list[i].createtime);
+					}
+					_this.BoxStatus = list;
+				}
+				if (res.data.result == "error") {
+					_this.$message({
+					message: "系统错误:错误指令" + res.data.error_description,
+					type: "warning"
+					});
+
+					//            console.log(res);
+				}
+				}).catch(function(error) {
+					console.log(error);
+				});
+		},
+		//全部列出企业信息
+		allBoxStatusList() {
+			this.querybut = false;
+			$(".zForm input").val("");
+			let _this = this;
+			let URL = ServerUrl;
+			var pageSize = this.pagesize,
+				currentPage = this.currentPage,
+				serverName = $(".zInput").val();
+			var userparameter = {
+				contacts_name_or_phonenum: "",
+				enterprise_name: "",
+				page_number: currentPage - 1,
+				page_size: pageSize
+			};
+
+			getenterpriseinfos(userparameter).then(function(res) {
+				if (res.status === 200 && res.data.result == "ok") {
+					_this.$message({
+						message: "全部数据",
+						type: "success"
+					});
+					var list = res.data.data.list;
+					//            console.log(list)
+					let totalall = res.data.data.page_total_items;
+					_this.total = totalall;
+					for (var i in list) {
+						list[i].createtime = _this.timestampToTime(list[i].createtime);
+					}
+					_this.BoxStatus = list;
+				}
+				if (res.data.result == "error") {
+					_this.$message({
+					message: res.data.error_description,
+					type: "warning"
+					});
+				}
+				}).catch(function(error) {
+					console.log(error);
+				});
+		},
+		// 查询企业信息数据
+		queryBoxStatusList() {
+		if ($(".zInput").val() === "" && $(".contactsInput").val() === "") {
+			this.$message({
+			message: "请填写查询项",
+			type: "warning"
+			});
+		} else {
+			this.querybut = true;
+			page = 1;
+			this.currentPage = 1;
+			let _this = this;
+			let URL = ServerUrl;
+			var pageSize = this.pagesize,
+			currentPage = this.currentPage,
+			serverName = $(".zInput").val(),
+			contactsInput = $(".contactsInput").val();
+			var userparameter = {
+			contacts_name_or_phonenum: contactsInput,
+			enterprise_name: serverName,
+			page_number: currentPage - 1,
+			page_size: pageSize
+			};
+
+			getenterpriseinfos(userparameter).then(function(res) {
+				if (res.status === 200 && res.data.result == "ok") {
+				_this.$message({
+					message: "查询成功",
+					type: "success"
+				});
+				//              console.log(res)
+				var list = res.data.data.list;
+				let totalall = res.data.data.page_total_items;
+				_this.total = totalall;
+				for (var i in list) {
+					list[i].createtime = _this.timestampToTime(list[i].createtime);
+				}
+				_this.BoxStatus = list;
+				} else if (res.data.result == "error") {
+				_this.$message({
+					message: res.data.error_description,
+					type: "warning"
+				});
+
+				//              console.log(res);
+				}
+			})
+			.catch(function(error) {
+				console.log(error);
+			});
+		}
+		},
+		// 给企业临时管理员账号延期
+		postpone_casual(e) {
+			var _this = this;
+			//        console.log(e)
+
+			var casual_admin_id = {
+				casual_admin_id: e.id
+			};
+			getpostpone_casual_admin(casual_admin_id).then(function(res) {
+				if (res.status === 200 && res.data.result == "ok") {
+					_this.$message({
+							message: "延期成功",
+							type: "success"
+						});
+					}
+					// 隐藏 延期 弹窗
+					_this.dialogcasual = false;
+					
+				if (res.data.result == "error") {
+				_this.$message({
+					message: res.data.error_description,
+					type: "warning"
+				});
+				}
+			});
+		},
+		//取消临时账号
+		canceleditMenuInfoList() {
+			this.dialogTableVisibleedit = false;
+		},
+		handleSizeChange: function(size) {
+			this.pagesize = size;
+		},
+		handleCurrentChange: function(currentPage) {
+			this.currentPage = currentPage;
+			page = this.currentPage;
+			this.StatusList();
+		},
+		//  获取列出企业信息 
+		StatusList() {
+			let _this = this;
+			let URL = ServerUrl;
+			var pageSize = this.pagesize,
+				currentPage = this.currentPage,
+				serverName = $(".zInput").val(),
+				contactsInput = $(".contactsInput").val();
+
+			if (this.querybut != true) {
+				serverName = "";
+				contactsInput = "";
+			}
+
+			var userparameter = {
+				contacts_name_or_phonenum: contactsInput,
+				enterprise_name: serverName,
+				page_number: currentPage - 1,
+				page_size: pageSize
+			};
+
+			getenterpriseinfos(userparameter).then(function(res) {
+				if (res.status === 200 && res.data.result == "ok") {
+					var list = res.data.data.list;
+					let totalall = res.data.data.page_total_items;
+					_this.total = totalall;
+					for (var i in list) {
+					list[i].createtime = _this.timestampToTime(list[i].createtime);
+					}
+					_this.BoxStatus = list;
+				} else if (res.data.result == "error") {
+					_this.$message({
+					message: res.data.error_description,
+						type: "warning"
+					});
+				}}).catch(function(error) {
+					console.log(error);
+				});
+		},
+		//  * 0:L1:province:第1～2位，为省级代码;(2)
+		// 	 * 1:L2:district:第3～4 位，为地级代码；(2)
+		// 	 * 2:L3:county:第5～6位，为县级代码；(2)
+		// 	 * 3:L4:township:第7～9位，为乡级代码；(3)
+		// 	 * 4:L5:village:第10～12位，为村级代码。(3)
+		// 	截取有效非零有效数字 */
+		splitCode(code) {
+		var codes = ["00", "00", "00", "000", "000"];
+		if (!code) {
+			return codes;
+		}
+
+		if (code.length < 12) {
+			code += "000000000000";
+			code = code.substring(0, 12);
+		}
+		var pos = 0;
+		for (var i = 0, l = codes.length; i < l; i++) {
+			var len = codes[i].length;
+			codes[i] = code.substring(pos, pos + len);
+			pos += len;
+		}
+		return codes;
+		},
+		//
+		parentCode(code) {
+		var codes = this.splitCode(code);
+		var pcode = "";
+		for (var i = 0; i < codes.length - 1; i++) {
+			if (codes[i + 1] == "00" || codes[i + 1] == "000") {
+			break;
+			}
+			pcode += codes[i];
+		}
+		pcode += "000000000000";
+		return pcode.substring(0, code.length);
+		},
+		isSub(pcode, subcode) {
+		var _pcode = this.toShort(pcode);
+		return _pcode == subcode.substring(0, _pcode.length);
+		},
+		toShort(code) {
+		if (!code) {
+			return null;
+		}
+		var codes = this.splitCode(code);
+		var shortCode = "";
+		for (var i = 0, len = codes.length; i < len; i++) {
+			shortCode += codes[i];
+			if (i + 1 < len && (codes[i + 1] == "00" || codes[i + 1] == "000")) {
+			break;
+			}
+		}
+		return shortCode;
+		}
+  },
+  updated() {
+    var editmodHei = $("#enterpriseEditModel .el-dialog").height();
+    $("#enterpriseEditModel .el-dialog").css("marginTop", -(editmodHei / 2));
+    $("#enterpriseEditModel .el-dialog").css("marginBottom", 0);
+    var addmodHei1 = $("#menuAddModel .el-dialog").height();
+    $("#menuAddModel .el-dialog").css("marginTop", -(addmodHei1 / 2));
+    $("#menuAddModel .el-dialog").css("marginBottom", 0);
+
+    var addmodHei2 = $("#menucasualModel .el-dialog").height();
+    $("#menucasualModel .el-dialog").css("marginTop", -(addmodHei2 / 2));
+    $("#menucasualModel .el-dialog").css("marginBottom", 0);
+  }
+};
+</script>
+<style scoped>
+#tabChagecontEnterprise{
+	width: 100%;
+	height: 400px;
+	background: #4a567c;
+	overflow: hidden;
+}
+#tabChagecontEnterprise .vmServercont {
+	overflow: hidden;
+}
+#tabChagecontEnterprise .vmServercont .serverLeft{
+	float: left;
+	width: 40%;
+}
+#tabChagecontEnterprise .vmServercont .serverLsftcheck{
+	margin-top: 20px;
+}
+#tabChagecontEnterprise .vmServercont .serverRight{
+	float: left;
+	width: 40%;
+	margin-left: 20px;
+	text-align: left;
+}
+</style>
+<style scoped>
+.scrollbox {
+  width: 1564px;
+}
+
+@media screen and (max-width: 1440px) {
+  .scrollbox {
+    width: 1156px;
+  }
+}
+
+@media screen and (max-width: 1366px) {
+  .scrollbox {
+    width: 1090px;
+  }
+
+  #menuBox .zTable {
+    padding-top: 16px;
+    height: 93%;
+  }
+
+  #menuBox .elTable {
+    height: 86%;
+  }
+
+  #menuBox .zInput {
+    height: 28px;
+    line-height: 28px;
+    width: 100px;
+    padding-left: 0;
+  }
+
+  #menuBox.zForm {
+    padding-bottom: 15px;
+  }
+
+  #menuBox .zForm button {
+    float: left;
+    color: #eee;
+    height: 30px;
+    font-size: 12px;
+    margin-left: 8px;
+    text-align: center;
+    line-height: 30px;
+    padding: 0px 10px;
+    border: 1px #3b4872 solid;
+  }
+}
+
+/* 弹出层 */
+#activeCity_box,
+#activeCity_box1 {
+  position: relative;
+}
+
+.formTable {
+  position: relative;
+  overflow: hidden;
+  padding: 2px 4px;
+  background: #4a567c;
+}
+
+.block {
+  float: left;
+  width: 50%;
+  height: 40px;
+  overflow: hidden;
+  /* border:2px #4a567c solid; */
+}
+
+.blockUrl {
+  width: 105%;
+}
+
+.blockUrl label {
+  width: 15% !important;
+}
+
+.block-row {
+  float: left;
+  width: 105%;
+  height: 40px;
+  overflow: hidden;
+  /* border:2px #4a567c solid; */
+}
+
+.infoMsg {
+  float: left;
+  line-height: 36px;
+  padding-left: 9px;
+}
+
+.checkboxBg {
+  width: 96%;
+  height: 34px;
+  margin: 2px 0;
+  line-height: 34px;
+  padding-left: 10px;
+  background: #2a3558;
+  border: 1px #3b4872 solid;
+}
+
+.textarea {
+  clear: both;
+  height: 164px;
+  overflow: hidden;
+}
+
+.power {
+  clear: both;
+  height: 400px;
+  overflow: hidden;
+}
+
+.userBtn {
+  overflow: hidden;
+  padding-top: 24px;
+  text-align: right;
+}
+
+/* end */
+
+.mRightTwo {
+  padding: 34px 42px;
+  margin: 15px 27px 15px 15px;
+  background: #354166;
+  box-shadow: 0px 0px 26px #01060e;
+}
+
+.zForm span {
+  float: left;
+  color: #eee;
+  display: block;
+  font-size: 14px;
+  overflow: hidden;
+  line-height: 36px;
+}
+
+.zTable {
+  clear: both;
+  height: 94%;
+  overflow: hidden;
+  padding-top: 26px;
+}
+
+.elTable {
+  height: 91.7%;
+  overflow: hidden;
+}
+
+.zInput,
+.contactsInput {
+  float: left;
+  width: 120px;
+  height: 36px;
+  font-size: 14px;
+  margin-left: 3px;
+  line-height: 36px;
+  padding-left: 14px;
+  margin-right: 20px;
+  background: #2a3558;
+  border: 1px #3b4872 solid;
+}
+
+.zForm button {
+  float: left;
+  color: #eee;
+  height: 38px;
+  font-size: 14px;
+  margin-left: 11px;
+  text-align: center;
+  line-height: 38px;
+  padding: 0px 15px;
+  background: #1b274c;
+  border: 1px #3b4872 solid;
+}
+
+.zSelect {
+  float: left;
+  width: 400px;
+}
+
+#menuAddModel .SelectTitle,
+#enterpriseEditModel .SelectTitle {
+  float: left;
+  height: 36px;
+  display: block;
+  line-height: 36px;
+}
+
+.zForm span.btnRight {
+  float: right;
+  display: inline-block;
+}
+
+.block .el-form-item__label,
+.block .el-input__inner,
+.textarea .el-form-item__label {
+  height: 36px;
+  margin: 2px 0;
+  line-height: 36px;
+  border: 1px #3b4872 solid;
+}
+</style>
+<style type="text/css">
+::-webkit-scrollbar {
+  width: 12px;
+  /*滚动条宽度*/
+  height: 12px;
+  /*滚动条高度*/
+}
+
+::-webkit-scrollbar-track {
+  border-radius: 5px;
+  /*滚动条的背景区域的圆角*/
+  background-color: #222d50;
+  /*滚动条的背景颜色*/
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 5px;
+  /*滚动条的圆角*/
+  background-color: #4f5c84;
+  /*滚动条的背景颜色*/
+}
+
+.corporate_name {
+  width: 100%;
+}
+
+#menuAddModel {
+  overflow: hidden;
+}
+
+#menuAddModel #activeCity {
+  z-index: 888;
+  width: 400px;
+  background-color: #354166;
+  border: 2px solid #3b4872;
+  height: 300px;
+}
+
+#menuAddModel #showtreebox1,
+#menuAddModel #showtreebox2,
+#menuAddModel #showtreebox3 {
+  top: 36px;
+  right: 60px;
+  position: absolute;
+  width: 380px;
+  height: 440px;
+  z-index: 99;
+  background-color: #354166;
+  border: 2px #3b4872 solid;
+}
+
+#enterpriseEditModel .showtreeboxzTreerow {
+  top: 36px;
+  right: 60px;
+  position: absolute;
+  width: 380px;
+  height: 440px;
+  z-index: 99;
+  background-color: #354166;
+  border: 2px #3b4872 solid;
+}
+
+#menuAddModel .textarea .el-form-item__label,
+#menucasualModel .textarea .el-form-item__label,
+#enterpriseEditModel .textarea .el-form-item__label {
+  height: 160px;
+  margin-top: 2px;
+  background: #1b274c;
+}
+
+#menuAddModel .textarea .el-textarea__inner,
+#menucasualModel .textarea .el-textarea__inner,
+#enterpriseEditModel .textarea .el-textarea__inner {
+  height: 160px;
+}
+
+@import url("../media/lkjmedia.css");
+#menucasualModel .el-dialog,
+#enterpriseEditModel .el-dialog,
+#menuAddModel .el-dialog {
+  width: 1100px;
+  top: 50%;
+}
+
+#enterpriseEditModel .block .el-form-item__label,
+#menucasualModel .block .el-form-item__label,
+#menucasualModel .block .el-input__inner,
+#enterpriseEditModel .block .el-input__inner {
+  height: 36px;
+  margin: 2px 0;
+  line-height: 36px;
+  border: 1px #3b4872 solid;
+}
+
+#enterpriseEditModel .block .el-form-item__label,
+#menucasualModel .block .el-form-item__label,
+#menuAddModel .block .el-form-item__label {
+  background: #1b274c;
+}
+
+#menuAddModel .block .el-form-item__label,
+#enterpriseEditModel .block .el-form-item__label,
+#enterpriseEditModel .block .el-input__inner,
+#menuAddModel .block .el-input__inner {
+  height: 36px;
+  margin: 2px 0;
+  line-height: 36px;
+  border: 1px #3b4872 solid;
+}
+
+#menuAddModel .blockUrl .el-form-item__label,
+  #enterpriseEditModel .blockUrl .el-form-item__label
+    /* #enterpriseEditModel .blockUrl .el-input__inner, */
+ {
+  width: 14% !important;
+  height: 36px;
+  margin: 2px 0;
+  line-height: 36px;
+  border: 1px #3b4872 solid;
+}
+
+#menucasualModel .el-dialog__body,
+#enterpriseEditModel .el-dialog__body,
+#menuAddModel .el-dialog__body {
+  padding: 24px 24px 18px;
+}
+
+#enterpriseEditModel #pane-first .el-checkbox,
+#menuAddModel #pane-first .el-checkbox {
+  float: left;
+  width: 20%;
+  margin-left: 0px;
+}
+
+#menucasualModel .el-form-item,
+#enterpriseEditModel .el-form-item,
+#enterpriseEditModel .el-form-item,
+#menuAddModel .el-form-item {
+  margin: 0;
+  padding: 0;
+  width: 91%;
+  float: left;
+}
+
+#menucasualModel .userBtn .el-form-item,
+#enterpriseEditModel .userBtn .el-form-item,
+#menuAddModel .userBtn .el-form-item {
+  width: 100%;
+}
+
+#enterpriseEditModel .el-textarea,
+#menucasualModel .el-textarea,
+#menuAddModel .el-textarea {
+  width: 106.2%;
+}
+
+.el-textarea__inner {
+  height: 160px;
+  margin: 2px 0;
+  line-height: 22px;
+  background: #2a3558;
+  border: 1px #3b4872 solid;
+  border-radius: 0;
+}
+
+.el-date-editor.el-input {
+  width: 100%;
+}
+
+.el-select {
+  width: 100%;
+}
+
+.el-textarea {
+  float: left;
+  width: 92.2%;
+}
+
+.el-dialog__header span {
+  padding-left: 38px;
+  height: 38px;
+  display: inline-block;
+  background: url(../../assets/modeIco.png) no-repeat;
+}
+
+/*img:hover{*/
+/*background-color: #1b274c;*/
+/*}*/
+
+#menuAddModel .blockUrl .el-form-item__content,
+#enterpriseEditModel .blockUrl .el-form-item__content {
+  margin-left: 14% !important;
+  line-height: 32px;
+}
+
+#menucasualModel .block .el-form-item__content,
+#menuAddModel .block .el-form-item__content,
+#enterpriseEditModel .block .el-form-item__content {
+  line-height: 32px;
+}
+</style>
+<style lang="scss">
+#tab-Country,
+#tab-province,
+#tab-city,
+#tab-county {
+  width: 78px;
+  text-align: center;
+}
+
+#menuAddModel,
+#enterpriseEditModel {
+  .monitor_left,
+  .monitor_right {
+    width: 50%;
+    float: left;
+    height: 30px;
+  }
+  .monitor_right_span {
+    float: right;
+  }
+
+  .TerminaLeft,
+  .TerminaRight {
+    background-color: #1b274c;
+
+    /*float: left;*/
+    width: 300px;
+    height: 380px;
+    overflow-y: auto;
+  }
+  .second {
+    .serveradd {
+      float: left;
+      width: 50%;
+      height: 30px;
+    }
+    .serveraddress {
+      height: 30px;
+
+      line-height: 30px;
+      text-align: center;
+      .empty {
+        float: right;
+        color: #eee;
+        height: 28px;
+        font-size: 12px;
+        margin-left: 11px;
+        text-align: center;
+        line-height: 28px;
+        padding: 0px 8px;
+        background: #1b274c;
+        border: 1px #3b4872 solid;
+      }
+      .empty:hover {
+        background: #57e29b !important;
+        border: 1px #242f50 solid !important;
+        color: #333;
+      }
+    }
+  }
+  .scrolltree {
+    height: 300px;
+  }
+  #medialist .closebox {
+    display: block;
+    img {
+      margin-top: 2px;
+    }
+    margin-left: 20px;
+    display: -webkit-inline-box;
+    display: inline-block;
+  }
+  #mediatree,
+  #medialist {
+    ul li {
+      z-index: 88;
+      height: 34px;
+      padding-top: 5px;
+      font-size: 18px;
+      line-height: 34px;
+      width: 300px;
+    }
+    float: left;
+    width: 50%;
+    height: 100%;
+  }
+  #mediatree1,
+  #mediatree2,
+  #medialist1,
+  #medialist2,
+  #medialist3 {
+    ul li {
+      height: 34px;
+      padding-top: 5px;
+      font-size: 18px;
+      line-height: 34px;
+      width: 300px;
+    }
+    float: left;
+    width: 50%;
+    height: 100%;
+  }
+
+  #showtreebox1,
+  #showtreebox2 {
+    #showtreeboxdisplaybox {
+      /*width: 380px;*/
+      height: 440px;
+    }
+    #pane-province,
+    #pane-city,
+    #pane-county {
+      height: 380px;
+    }
+
+    .closedbut {
+      position: absolute;
+      bottom: 0;
+      right: 20px;
+      width: 50px;
+      height: 30px;
+      padding: 0px 10px;
+      border-radius: 10px;
+      background: #1b274c;
+      border: 1px #3b4872 solid;
+      text-align: center;
+      z-index: 999;
+      cursor: pointer;
+    }
+  }
+}
+</style>

@@ -1,0 +1,1887 @@
+<template>
+  <!-- 监控平台 -->
+  <div class="mRight" id="MonitorPage">
+    <div class="mRightTwo">
+      <div class="zForm">
+        <span>名称</span>
+        <input v-model="zInput" class="zInput" type="text" placeholder />
+        <button @click="queryVersionList(false)">查询</button>
+        <button @click="getVersionList('','all')">全部</button>
+        <span class="btnRight">
+          <button @click="addUp">新增</button>
+        </span>
+      </div>
+      <div class="zTable">
+        <div class="elTable">
+          <!-- <vue-scroll :ops="ops" ref="vs"> -->
+          <div class="scrollbox">
+            <el-table ref="multipleTable" :data="tableData3" style="width: 100%">
+              <el-table-column type="index" label="序号" width="50px"></el-table-column>
+              <el-table-column prop="name" label="Vmserver名称"></el-table-column>
+              <el-table-column prop="ip" label="IP地址"></el-table-column>
+              <!-- <el-table-column prop="account" label="登录账号"></el-table-column>
+              <el-table-column prop="password" label="登录密码"></el-table-column>-->
+
+              <el-table-column prop="port" label="端口号" width="50px"></el-table-column>
+              <el-table-column prop="home_page" label="Web平台地址">
+                  <template slot-scope="scope">
+                    <a :href='scope.row.home_page' class="ml5" target="_blank">
+                      <span>{{scope.row.home_page}}</span>
+                    </a>
+                </template>
+              </el-table-column>
+              <el-table-column width="150" prop="createtime" label="创建时间">
+                <template slot-scope="scope">
+                  <span
+                    class="list_Time"
+                  >{{ scope.row.createtime | FormatDate('yyyy-MM-dd hh:mm:ss') }}</span>
+                </template>
+              </el-table-column>
+
+              <el-table-column label="操作">
+                <template slot-scope="scope">
+                  <a href="javascript:;" class="ml5">
+                       <span  @click="editpust(scope.row)">编辑</span>
+                    <!-- <img @click="editpust(scope.row)" src="../../assets/edit2.png" alt /> -->
+                  </a>
+                  <a href="javascript:;" class="ml5" @click="addStreamingmedia(scope.row)">
+                    <span>添加流媒体</span>
+                  </a>
+                  <a href="javascript:;" class="ml5" @click="deletelist(scope.row)">
+                    <span>删除</span>
+                  </a>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+          <!-- </vue-scroll> -->
+        </div>
+        <el-pagination
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+          :current-page.sync="pagenumber"
+          :page-size="pagesize"
+          layout="total, prev, pager, next, jumper"
+          :total="total"
+        ></el-pagination>
+      </div>
+    </div>
+
+    <div id="MonitorPageAddModel">
+      <el-dialog
+        :close-on-click-modal="false"
+        title="流媒体 - 新增"
+        :visible.sync="dialogstreamServeradd"
+      >
+        <el-form
+          :model="streamServeradd"
+          ref="streamServeradd"
+          label-width="30%"
+          class="demo-ruleForm"
+        >
+          <div class="formTable">
+            <div class="block">
+              <el-form-item
+                label="Vmserver名称："
+                :rules="[{ required: true, message: ' '}]"
+                prop="name"
+              >
+                <el-input v-model="streamServeradd.name" maxlength="50"></el-input>
+              </el-form-item>
+            </div>
+            <div class="block">
+              <el-form-item label="Web平台地址：" :rules="[{ required: true, message: ' '}]" prop="name">
+                <el-input v-model="streamServeradd.home_page" maxlength="50"></el-input>
+              </el-form-item>
+            </div>
+            <div class="block">
+              <el-form-item label="IP地址:" :rules="[{ required: true, message: ' '}]" prop="ip">
+                <el-input v-model="streamServeradd.ip" maxlength="50"></el-input>
+              </el-form-item>
+            </div>
+
+            <div class="block">
+              <el-form-item label="端口:" :rules="[{ required: true, message: ' '}]" prop="port">
+                <el-input v-model="streamServeradd.port" maxlength="50"></el-input>
+              </el-form-item>
+            </div>
+
+            <div class="block">
+              <el-form-item
+                label="appKey:"
+                :rules="[{ required: true, message: ' '}]"
+                prop="manager_name"
+              >
+                <el-input v-model="streamServeradd.app_key" maxlength="50"></el-input>
+              </el-form-item>
+            </div>
+            <div class="block">
+              <el-form-item
+                label="appSecret:"
+                :rules="[{ required: true, message: ' '}]"
+                prop="manager_phonenum"
+              >
+                <el-input v-model="streamServeradd.app_secret" maxlength="50"></el-input>
+              </el-form-item>
+            </div>
+          </div>
+          <div class="userBtn2">
+            <el-form-item>
+              <el-button type="primary" @click="addSubmit">保存</el-button>
+              <el-button @click="addCancel">取消</el-button>
+            </el-form-item>
+          </div>
+        </el-form>
+      </el-dialog>
+    </div>
+    <div id="MonitorPageEditModel">
+      <el-dialog
+        :close-on-click-modal="false"
+        title="流媒体 - 编辑"
+        :visible.sync="dialogstreamServeredit"
+      >
+        <el-form :model="streamServeredit" ref="streamServeredit" label-width="25%" class="demo-ruleForm">
+          <div class="formTable">
+              <div class="block">
+              <el-form-item
+                label="Vmserver名称："
+                :rules="[{ required: true, message: ' '}]"
+                prop="name"
+              >
+                <el-input v-model="streamServeredit.name" maxlength="50"></el-input>
+              </el-form-item>
+            </div>
+            <div class="block">
+              <el-form-item label="Web平台地址：" :rules="[{ required: true, message: ' '}]" prop="name">
+                <el-input v-model="streamServeredit.home_page" maxlength="50"></el-input>
+              </el-form-item>
+            </div>
+            <div class="block">
+              <el-form-item label="IP地址:" :rules="[{ required: true, message: ' '}]" prop="ip">
+                <el-input v-model="streamServeredit.ip" maxlength="50"></el-input>
+              </el-form-item>
+            </div>
+
+            <div class="block">
+              <el-form-item label="端口:" :rules="[{ required: true, message: ' '}]" prop="port">
+                <el-input v-model="streamServeredit.port" maxlength="50"></el-input>
+              </el-form-item>
+            </div>
+
+            <div class="block">
+              <el-form-item
+                label="appKey:"
+                :rules="[{ required: true, message: ' '}]"
+                prop="manager_name"
+              >
+                <el-input v-model="streamServeredit.app_key" maxlength="50"></el-input>
+              </el-form-item>
+            </div>
+            <div class="block">
+              <el-form-item
+                label="appSecret:"
+                :rules="[{ required: true, message: ' '}]"
+                prop="manager_phonenum"
+              >
+                <el-input v-model="streamServeredit.app_secret" maxlength="50"></el-input>
+              </el-form-item>
+            </div>
+          </div>
+          <div class="userBtn2">
+            <el-form-item>
+              <el-button type="primary" @click="editSubmit">保存</el-button>
+              <el-button @click="editCancel('1')">取消</el-button>
+            </el-form-item>
+          </div>
+        </el-form>
+      </el-dialog>
+    </div>
+    <!-- 添加流媒体 -->
+    <div id="MonitorPageEditStream">
+      <el-dialog
+        :before-close="editStreamingmediaClose"
+        :close-on-click-modal="false"
+        title="添加流媒体"
+        :visible.sync="editStreamingmediaPop"
+        style="width:70%;margin: 0 auto;"
+      >
+        <el-form :model="streamServeredit" ref="streamServeredit" label-width="25%" class="demo-ruleForm" id="stMediaidform">
+          <div class="formTable">
+            <div class="stMediac" id="stMediaid">
+              <div class="leftTree">
+                <el-tree
+                  :props="props"
+                  :data='InitstreamData'
+                  :load="streamNode"  
+                  lazy=''
+                  ref="streamTree"
+                  :render-content="renderMonitor"
+                  @node-click="streamNodeclick"
+                  >
+                </el-tree>
+              </div>
+              <div class="rightList">
+                <div class="tit">已添加的流媒体列表</div>
+                <div class="cont">
+                  <el-table  :data="streamServeretableData" style="width: 100%">
+                    <el-table-column prop="" label="流媒体名称">
+                      <template slot-scope="scope">
+                          <el-input id='streamTableinp' class='tableInp' size="mini" v-model="scope.row.server_name" @input="isshowchange" placeholder="请输入流媒体名称"></el-input>
+                       </template>
+                    </el-table-column>
+                    <el-table-column prop="org_code" label="地区编码"></el-table-column>
+                    <el-table-column prop="" label="优先级">
+                      <template slot-scope="scope">
+                          <el-input id='streamTableinp' class='tableInp' @input="isshowchange"  size="mini" v-model="scope.row.priority" placeholder="请输入流媒体名称"></el-input>
+                       </template>
+                    </el-table-column>
+                    <el-table-column prop="" label="是否专用">
+                      <template slot-scope="scope">
+                        <el-switch
+                          v-model="scope.row.exclusive"
+                          active-color="#13ce66"
+                          inactive-color="#d6cdcd"		
+                          on-value="1"
+                          off-value="0"
+                          @change="changeSwitch(scope.row)"
+                        >
+                      </el-switch>
+                       </template>
+                    </el-table-column>
+                    <el-table-column prop="" label="操作">
+                      <template slot-scope="scope">
+                        <!--  v-if='whetherDatachanges'  -->
+                        <span v-show="isshowbutton" class="btnSpan" @click="streamTablelistSavedata(scope.row)">保存</span>
+                        <span class="btnSpan" @click="remoceTabledata(scope.row)">删除</span>
+                      </template>
+                    </el-table-column>
+                  </el-table>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="userBtn2">
+            <el-form-item>
+              <el-button @click="editStreamingmediaClose">取消</el-button>
+            </el-form-item>
+          </div>
+        </el-form>
+      </el-dialog>
+    </div>
+  </div>
+</template>
+<script>
+import $ from "jquery";
+import axios from "axios";
+import {
+  getRegionsbyPid,
+  getRegiondetail
+} from "@/components/interface/common.js";
+// stream_server_load_stream_servers  加载指定区域下的流媒体拉流服务器
+// stream_server_modify_stream_server  修改流媒体信息
+// stream_server_add_stream_server  添加流媒体拉流服务器
+// stream_server_delete_stream_server  删除流媒体
+// stream_server_list_stream_servers  列出VMServer下的流媒体拉流服务器
+// stream_server_get_stream_server  获取指定ID的流媒体拉流服务器信息
+import {
+  get_stream_server_list,
+  get_stream_server_add_vmserver,
+  get_stream_server_modify_vmserver,
+  get_stream_server_get_vmserver,
+  get_stream_server_delete_vmserver,
+  stream_server_add_vmserver,
+  stream_server_load_stream_servers,
+  stream_server_modify_stream_server,
+  stream_server_add_stream_server,
+  stream_server_delete_stream_server,
+  stream_server_list_stream_servers,
+  stream_server_get_stream_server,
+} from "@/components/interface/resource.js";
+
+// getallenterprise_streamservers 获取地区tree
+import {getallenterprise_streamservers} from '@/components/interface/Private.js';
+import { Loading } from "element-ui";
+
+import {arrayObjdeweighting} from '../../page/untils/heightAuto'
+
+var page = 1;
+var totalNum = false,
+  count = 0;
+var indexCount = 0;
+var CancelToken = axios.CancelToken;
+var custom = CancelToken.source();
+var upfile = false,
+  fileChange = false;
+var treedata = [];
+
+//  var Valindex;
+var TreeDataId = "";
+export default {
+  data() {
+    return {
+      //显示添加流媒体保存按钮
+      isshowbutton:false,
+      /* 添加流媒体相关数据 zk*/
+      editStreamingmediaPop : false,
+      editStreamingmediaData : [],
+      editStreamingmediaBtntype : false,
+      editStreamingmediaDetail : {},
+      streamServeretableData : [],
+      // table 编辑
+      showEdit: [], //显示编辑框
+      showBtn: [],
+      showBtnOrdinary: true,
+      /* 添加流媒体相关数据 zk*/
+      // 流媒体 全国节点 tree
+      InitstreamData : [],
+      props : {
+        label: 'name',
+        children: 'children',
+        isLeaf: 'leaf'
+      },
+      whetherDatachanges : false,
+      /* 添加流媒体相关数据 */
+      fullscreenLoading: false,
+      enabled: "1",
+      addressHtml: "",
+      Fid: "",
+      treeid: "",
+      percentage: 0,
+      addinputdata: "",
+      ops: {
+        vuescroll: {
+          mode: "native"
+        },
+        scrollPanel: {}
+      },
+      server_id: 0,
+      zInput: "",
+      data: [],
+      enabled: "0",
+      total: 1,
+      checked: false,
+      querybut: false,
+      multipleSelection: [],
+      dialogstreamServeradd: false,
+      dialogstreamServeredit: false,
+      dialogserverbox: false,
+      TerminaInformation: false,
+      showtreebox: false,
+      filedata: "",
+      streamServer_server_status: false, //获取会管（终端通讯录）服务器的状态信息
+      streamServer_status: "服务器连接正常", //获取会管（终端通讯录）服务器
+      monitor_server_status: false, //获取监控平台（唐古拉）服务器的状态信息
+      monitor_server_all: false, //获取监控平台（唐古拉）服务器的状态信息
+      streamServer_server_all: false, //获取监控平台（唐古拉）服务器的状态信息
+      monitor_status: "服务器连接失败", //获取监控平台（唐古拉）服务器
+
+      add_is_sync_auto: "yes",
+      edit_is_sync_auto: "yes",
+
+      streamServeradd: {
+        app_key: "ucsys",
+        app_secret: "",
+        home_page: "",
+        ip: "",
+        name: "",
+        port_ssl: 0,
+        port: ""
+      },
+      streamServeredit: {
+        app_key: "ucsys",
+        app_secret: "",
+        home_page: "",
+        ip: "",
+        name: "",
+        port_ssl: 0,
+        port: ""
+      },
+      Serverdata: {
+        monitor_server: "",
+        streamServer_server: ""
+      },
+      delete: {
+        idList: [],
+        clientKey: localStorage.clientKey,
+        token: localStorage.token
+      },
+      tableData3: [],
+      pagenumber: page,
+      pagesize: scopes,
+      streamServerList: [],
+      streamServerID: "",
+      FileType: "",
+      filezip: "",
+      regions: {}
+    };
+  },
+  // watch: {
+  //     streamServeretableData(val, oldVal) {
+  //       console.log("inputVal = " + val + " , oldValue = " + oldVal)
+  //       this.isshowbutton=true
+  //     }
+  //   },
+
+  mounted: function() {
+    var hei = document.documentElement.clientHeight;
+    $(".mRightTwo").css("height", hei - 178);
+    $(window).resize(function() {
+      var wid = document.documentElement.clientWidth,
+        hei = document.documentElement.clientHeight;
+      $(".mRightTwo").css("height", hei - 178);
+    });
+    this.getVersionList("", "");
+
+    $(".UploadPath").css("display", "none");
+
+    // 初始化流媒体 tree
+    //this.getInitstreeamTreedata();
+  },
+  methods: {
+
+    // 显示保存按钮
+    isshowchange(){
+      console.log("qqqq")
+   this.isshowbutton=true
+    },
+    //打开新增lkj
+    addUp() {
+      console.log(this.streamServeradd);
+      this.streamServeradd;
+      this.percentage = 0;
+      count = 0;
+
+      $("#file").val("");
+      $("#files").val("");
+      upfile = false;
+      custom = CancelToken.source();
+      // this.getselect();
+      this.streamServeradd = {
+        app_key: "",
+        app_secret: "",
+        home_page: "",
+        ip: "",
+        name: "",
+        port_ssl: 0,
+        port: ""
+      };
+
+      this.dialogstreamServeradd = true;
+      $("#file").val("");
+      this.FileType = "";
+    },
+    //取消新增lkj
+    addCancel() {
+      this.$message({
+        message: "已取消新增",
+        type: "info"
+      });
+      (this.streamServeradd = {
+        api_url: "",
+        client_id: "",
+        client_secret: "",
+        name: "",
+        parameters: "{}"
+      }),
+        (this.dialogstreamServeradd = false);
+      custom.cancel();
+
+      this.$store.commit("changtree", []);
+    },
+    getval(val) {
+      console.log(val);
+      this.FileType = val;
+      if (val == "1") {
+        $(".UploadPath").css("display", "none");
+        $(".upload").css("display", "block");
+        $(".filePath").css("display", "block");
+      } else {
+        $(".UploadPath").css("display", "block");
+        $(".upload").css("display", "none");
+        $(".filePath").css("display", "none");
+      }
+    },
+    gestreamServerType(val) {
+      this.add.streamServerType = val.value;
+      this.add.streamServerTypeName = val.value;
+      console.log(this.add.streamServerType);
+    },
+    //新增开始
+    addSubmit() {
+      var flag = true;
+
+      console.log(this.streamServeradd);
+      if (
+        this.streamServeradd.name == "" &&
+        this.streamServeradd.home_page == "" &&
+        this.streamServeradd.ip == "" &&
+        this.streamServeradd.port == "" &&
+        this.streamServeradd.app_key == "" &&
+        this.streamServeradd.app_secret == ""
+      ) {
+        this.$message({
+          message: "数据不允许为空",
+          type: "warning"
+        });
+        flag = false;
+        return false;
+      } else if (this.streamServeradd.name == "") {
+        this.$message({
+          message: "VMServer名称不允许为空",
+          type: "warning"
+        });
+        flag = false;
+        return false;
+      }else if (this.streamServeradd.home_page == "") {
+        this.$message({
+          message: "Web平台地址：不允许为空",
+          type: "warning"
+        });
+        flag = false;
+        return false;
+      } else if (this.streamServeradd.ip == "") {
+        this.$message({
+          message: "IP地址不允许为空",
+          type: "warning"
+        });
+        flag = false;
+        return false;
+      } else if (this.streamServeradd.port == "") {
+        this.$message({
+          message: "端口不允许为空",
+          type: "warning"
+        });
+        flag = false;
+        return false;
+      } else if (this.streamServeradd.app_key == "") {
+        this.$message({
+          message: "appKey不允许为空",
+          type: "warning"
+        });
+        flag = false;
+        return false;
+      } else if (this.streamServeradd.app_secret == "") {
+        this.$message({
+          message: "appSecret不允许为空",
+          type: "warning"
+        });
+        flag = false;
+        return false;
+      }
+      //  this.streamServeradd.is_sync_auto=(this.add_is_sync_auto=="yes")?true:false
+      console.log(this.streamServeradd);
+      var _this = this;
+      //新增监控平台
+      if (flag) {
+        get_stream_server_add_vmserver(this.streamServeradd)
+          .then(function(res) {
+            if (res.status === 200 && res.data.result == "ok") {
+              var response = res;
+              _this.$message({
+                message: "新增成功",
+                type: "success"
+              });
+              _this.dialogstreamServeradd = false;
+              _this.getVersionList("", "");
+            }
+            if (res.data.result == "error") {
+               _this.$message({
+               message: res.data.error_description,
+               type: "warning"
+                  });
+            }
+          })
+          .catch(function(error) {
+            console.log(error);
+          });
+      }
+    },
+
+    //获取列表数据
+    getVersionList(isall, all) {
+      this.zInput = "";
+      let _this = this;
+      let URL = window.ServerUrl;
+      var pageSize = this.pagesize,
+        pagenumber = this.pagenumber - 1;
+      var streamServerType = "";
+      var par = {
+        page_number: pagenumber,
+        page_size: pageSize,
+        name: isall
+      };
+
+      get_stream_server_list(par)
+        .then(function(res) {
+          if (res.status === 200 && res.data.result == "ok") {
+            if (isall === "") {
+              if (all == "all") {
+                _this.value = "";
+                _this.querybut = false;
+                _this.$message({
+                  message: "全部数据",
+                  type: "success"
+                });
+              }
+            } else {
+              _this.querybut = true;
+              _this.$message({
+                message: "查询完成",
+                type: "success"
+              });
+            }
+
+            let response = res.data.data.list;
+            // response[0].sync_result="1111111111111111111111111111111sdadwa"
+
+            _this.tableData3 = response;
+            _this.total = res.data.data.page_total_items;
+          }
+          if (res.data.result == "error") {
+            _this.$message({
+              message: res.data.error_description,
+              type: "warning"
+            });
+            console.log(res);
+          }
+        })
+        .catch(function(error) {
+          console.log(error);
+        });
+    },
+    //查询列表数据
+    queryVersionList(isall) {
+      if (this.zInput === "") {
+        this.$message({
+          message: "请选择查询项",
+          type: "warning"
+        });
+      } else {
+        this.getVersionList(this.zInput);
+      }
+    },
+
+    //上传文件框
+    getFile(e) {
+      console.log(e);
+      this.file = e.target.files[0];
+      var file = document.getElementById("files").files[0];
+      this.filedata = file;
+      console.log(this.filedata);
+      document.getElementById("file").value = file.name;
+      this.add.fileName = file.name;
+
+      this.percentage = 0;
+      count = 0;
+      $(".el-progress__text i").css("color", "#fff");
+    },
+
+    // 文件上传结束
+    changeFun(val) {
+      //复选框
+      this.multipleSelection = val;
+      console.log(this.multipleSelection);
+    },
+    handleSizeChange: function(size) {
+      this.pagesize = size;
+    },
+    handleCurrentChange: function(pagenumber) {
+      this.pagenumber = pagenumber;
+      page = this.pagenumber;
+      //this.getMenuInfoList();  //获取列表的函数
+      // console.log("search:"+this.value);
+      this.pageChange();
+    },
+    pageChange() {
+      let _this = this;
+      let URL = window.ServerUrl;
+      var pageSize = this.pagesize,
+        pagenumber = this.pagenumber - 1;
+      var streamServerType = "";
+      var par = {
+        page_number: pagenumber,
+        page_size: pageSize,
+        name: ""
+      };
+      if (this.querybut) {
+        par.name = this.zInput;
+      }
+
+      get_stream_server_list(par)
+        .then(function(res) {
+          if (res.status === 200 && res.data.result == "ok") {
+            let response = res.data.data.list;
+
+            _this.tableData3 = response;
+
+            console.log(_this.tableData3);
+            _this.total = res.data.data.page_total_items;
+          }
+          if (res.data.result == "error") {
+            _this.$message({
+              message: res.data.error_description,
+              type: "warning"
+            });
+            console.log(res);
+          }
+        })
+        .catch(function(error) {
+          console.log(error);
+        });
+    },
+    //删除
+    deletelist(index) {
+      console.log(index);
+
+      this.$confirm("是否执行删除操作?", "消息", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(() => {
+          var str = [];
+          var _this = this;
+
+          var delDate = {
+            id: index.id
+          };
+          console.log(delDate);
+          get_stream_server_delete_vmserver(delDate)
+            .then(function(res) {
+              if (res.status === 200 && res.data.result == "ok") {
+                _this.$message({
+                  message: "删除成功",
+                  type: "success"
+                });
+                _this.getVersionList("", "");
+              } else {
+                _this.$message({
+                  message: "删除失败",
+                  type: "success"
+                });
+                console.log(error);
+              }
+            })
+            .catch(function(error) {
+              console.log(error);
+            });
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消删除"
+          });
+        });
+    },
+
+    //同步
+    //
+    //点击编辑按钮
+
+    editpust(row) {
+      this.streamServeredit = {
+        app_key: "ucsys",
+        app_secret: "",
+        home_page: "",
+        ip: "",
+        name: "",
+        port_ssl: 0,
+        port: ""
+      };
+      console.log(row);
+      var id = {
+        id: row.id
+      };
+      var _this = this;
+      //获取指定ID的监控平台
+      get_stream_server_get_vmserver(id)
+        .then(function(res) {
+          if (res.status === 200 && res.data.result == "ok") {
+            console.log(res);
+            _this.streamServeredit = res.data.data;
+            // _this.edit_is_sync_auto=(_this.streamServeredit.is_sync_auto==true)?"yes":"no"
+          }
+          if (res.data.result == "error") {
+            console.log(res);
+          }
+        })
+        .catch(function(error) {
+          console.log(error);
+        });
+
+      this.dialogstreamServeredit = true;
+    },
+    //编辑提交
+    editSubmit() {
+      var flag = true;
+      console.log(this.streamServeradd);
+      if (
+        this.streamServeredit.name == "" &&
+        this.streamServeredit.home_page == "" &&
+        this.streamServeredit.ip == "" &&
+        this.streamServeredit.port == "" &&
+        this.streamServeredit.app_key == "" &&
+        this.streamServeredit.app_secret == ""
+      ) {
+        this.$message({
+          message: "数据不允许为空",
+          type: "warning"
+        });
+        flag = false;
+        return false;
+      } else if (this.streamServeredit.name == "") {
+        this.$message({
+          message: "监控平台名称不允许为空",
+          type: "warning"
+        });
+        flag = false;
+        return false;
+      } else if (this.streamServeredit.home_page == "") {
+        this.$message({
+          message: "IP地址不允许为空",
+          type: "warning"
+        });
+        flag = false;
+        return false;
+      } else if (this.streamServeredit.ip == "") {
+        this.$message({
+          message: "IP地址不允许为空",
+          type: "warning"
+        });
+        flag = false;
+        return false;
+      }else if (this.streamServeredit.port == "") {
+        this.$message({
+          message: "端口不允许为空",
+          type: "warning"
+        });
+        flag = false;
+        return false;
+      } else if (this.streamServeredit.app_key == "") {
+        this.$message({
+           message: "appKey不允许为空",
+          type: "warning"
+        });
+        flag = false;
+        return false;
+      } else if (this.streamServeredit.app_secret == "") {
+        this.$message({
+         message: "appSecret不允许为空",
+          type: "warning"
+        });
+        flag = false;
+        return false;
+      }
+      //  this.streamServeredit.is_sync_auto=(this.edit_is_sync_auto=="yes")?true:false
+
+      delete this.streamServeredit.createtime;
+      delete this.streamServeredit.updatetime;
+               console.log(this.streamServeredit);
+   
+      var _this = this;
+      if (flag) {
+        //编辑监控平台
+        get_stream_server_modify_vmserver(this.streamServeredit)
+          .then(function(res) {
+            if (res.status === 200 && res.data.result == "ok") {
+              var response = res;
+              _this.$message({
+                message: "编辑成功",
+                type: "success"
+              });
+              _this.dialogstreamServeredit = false;
+              _this.getVersionList("", "");
+            }
+            if (res.data.result == "error") {
+              _this.$message({
+                message: res.data.error_description,
+                type: "success"
+              });
+            }
+          })
+          .catch(function(error) {
+            console.log(error);
+          });
+      }
+    },
+    editCancel(e) {
+      if (e === "1") {
+        this.dialogstreamServeredit = false;
+      } else {
+        this.dialogserverbox = false;
+      }
+    },
+    /* zk */
+    //点击编辑  stream_server_list_stream_servers
+    // 添加流媒体
+    addStreamingmedia(scope){
+      this.isshowbutton=false
+      console.log(scope);
+      // 详情数据赋值
+      this.editStreamingmediaDetail = scope;
+      this.editStreamingmediaPop = true;
+      // 获取流媒体列表数据
+      this.getAddstreamlistdata(scope);
+      // 渲染 左测 tree 结构
+      this.getInitstreeamTreedata();
+      
+    },
+    // 获取添加流媒体列表
+    getAddstreamlistdata(){
+      let objData = {
+        vmserver_id : this.editStreamingmediaDetail.id,
+      }
+      stream_server_list_stream_servers(objData).then(res => {
+        if (res.status === 200 && res.data.result == "ok") {
+          this.streamServeretableData = res.data.data;
+        }else{
+          // 错误提示信息
+          this.$message.error(res.data.error_description);
+        }
+      });	
+    },
+    // 初始化 流媒体 tree 懒加载
+    getInitstreeamTreedata(){
+        let objData = {
+          "pid": "000000000000",
+          "timestamp": 0
+        };
+        // 获取所有流媒体列表 
+        // getRegionsbyPid
+        getRegionsbyPid(objData).then(res => {
+					if (res.status === 200 && res.data.result == "ok") {
+            this.InitstreamData = res.data.data.regions;
+					}
+        });	
+    },
+    // tree 懒加载
+    streamNode(node,resolve){
+      console.log('tree 渲染');
+      // 加载子节点
+     /*  if (node.level == 0) {
+			  resolve(this.InitstreamData);
+      }   */   
+			// 全国节点 下拉数据
+			let objData = {
+					"pid": node.data.id
+        }
+
+      if (node.level >= 1) {
+        if(!node.data.isMerge){
+          getRegionsbyPid(objData).then(res => {
+            if (res.status === 200 && res.data.result == "ok") {
+              this.getInitstreamServerloadstream(node,resolve,res.data.data.regions);
+            }
+          });	
+        }else{
+          resolve([]);
+        }
+      }
+
+    },
+    // 流媒体 加载指定区域下的流媒体拉流服务器
+    getInitstreamServerloadstream(node,resolve,resData){
+       let _this = this;
+      let streamData = resData;
+      let objData = {
+        "org_code": node.data.id,
+        "vmserver_id": this.editStreamingmediaDetail.id
+      }
+      stream_server_load_stream_servers(objData).then(res => {
+          //  console.log(res);
+        if (res.status === 200 && res.data.result == "ok") {
+          let serverLoaddata = res.data.data;
+          serverLoaddata.map(function(item,index){
+            item.name = item.server_name
+            item.isMerge = true;
+            item.leaf = true;
+          })
+          let contentArray = arrayObjdeweighting(streamData,serverLoaddata,'id')
+          resolve(contentArray)
+        }
+         if (res.data.result == "error") {
+            _this.$message({
+              message: "从vmserver加载流媒体信息失败，请检查vmserver服务器是否正常",
+              type: 'warning'
+            });
+                resolve([])
+            // console.log(res);
+          }
+
+      });	
+    },
+    // 流媒体渲染
+		renderMonitor(h, { node, data, store }){
+			return (
+				<span 
+				style="flex: 1; display: flex; align-items: center; justify-content: 
+				space-between; font-size: 14px; padding-right: 8px;">
+				<span>
+					<span  style={{color: (data.isMerge) ? "#f7e59a" : "#fff"}}>{node.label}</span>
+				</span>
+				<span>
+					</span>
+				</span>
+			)
+    },
+    // 流媒体数据点击 添加流媒体接口
+    streamNodeclick(data){
+      console.log(data);
+      /* let _this = this;
+      if(data.isMerge){
+        _this.streamServeretableData.push(data);
+      }
+      _this.streamServeretableData = arrayObjdeweighting([],  _this.streamServeretableData ,'server_code'); */
+
+      if(data.isMerge){
+        let objData = {
+          "exclusive": data.exclusive,
+          "org_code": data.org_code,
+          "priority": data.priority,
+          "server_code": data.server_code,
+          "server_name": data.server_name,
+          "vmserver_id": this.editStreamingmediaDetail.id,
+        }
+        stream_server_add_stream_server(objData).then(res => {
+            //  console.log(res);
+            if (res.status === 200 && res.data.result == "ok") {
+           
+              // 刷新右侧列表数据
+              this.getAddstreamlistdata()
+            }else{
+              // 错误提示信息
+             
+              this.$message.error(res.data.error_description);
+            }
+        });	
+      }
+    },
+    // 流媒体选中数据删除
+    remoceTabledata(scope){
+      // 遍历 唯一 id  删除 this.streamServeretableData.splice(0,1)
+     /*  let server_code = scope.server_code;
+
+      for(let i = _this.streamServeretableData.length -1; i>=0 ;i--){
+        if(server_code == _this.streamServeretableData[i].server_code){
+          _this.streamServeretableData.splice(i, 1);
+        }
+      } */
+      // 添加接口  stream_server_add_stream_server
+      console.log(scope);
+      // stream_server_delete_stream_server
+         this.$confirm("是否执行删除操作?", "消息", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(() => {
+      let objData = {
+        "id":  scope.id,
+      }
+      stream_server_delete_stream_server(objData).then(res => {
+          if (res.status === 200 && res.data.result == "ok") {
+            console.log(res);
+            // 刷新右侧列表数据
+            this.getAddstreamlistdata()
+          }else{
+						// 错误提示信息
+						this.$message.error(res.data.error_description);
+					}
+      })
+       })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消删除"
+          });
+        });
+      
+    },
+    // 是否专用
+    changeSwitch(scope){
+      console.log(scope);
+      this.isshowchange()
+      scope.exclusive != scope.exclusive
+      
+    },
+    // table 修改
+    streamTablelistSavedata(scope){
+      // 对比数据是否有修改
+      console.log(scope);
+      let objDatascope = scope
+      let name = scope.server_name;
+      let exclusive = scope.exclusive;
+      let priority = scope.priority;
+
+      // 查询 流媒体信息 对比  stream_server_get_stream_server
+      let objData = {
+        "id": scope.id
+      }
+      stream_server_get_stream_server(objData).then(res => {
+          if (res.status === 200 && res.data.result == "ok") {
+            // 获取 原有数据
+            // server_name exclusive  priority
+            let sourceName = res.data.data.server_name;
+            let sourceExclusive = res.data.data.exclusive;
+            let sourcePriority = res.data.data.priority;
+
+            if(name == sourceName && exclusive == sourceExclusive && priority == sourcePriority){
+                //console.log('数据无修改');
+                this.$message.error('请检查修改数据');
+            }else{
+                this.modifyStreamingmedia(objDatascope)
+            }
+          }
+      });	
+    },
+    // 修改流媒体信息 stream_server_modify_stream_server
+    modifyStreamingmedia(data){
+        //console.log('修改接口')
+        let formData = data;
+        let objData = {
+          "exclusive": formData.exclusive,
+          "id": formData.id,
+          "org_code": formData.org_code,
+          "priority": formData.priority,
+          "server_code": formData.server_code,
+          "server_name": formData.server_name
+        }
+        stream_server_modify_stream_server(objData).then(res => {
+          if (res.status === 200 && res.data.result == "ok") {
+            //console.log(res);
+            this.$message.success('修改成功');
+          }else{
+						// 错误提示信息
+						this.$message.error(res.data.error_description);
+					}
+        });	
+    },
+    // 关闭
+    editStreamingmediaClose(){
+
+      this.streamServeretableData = [];
+      this.editStreamingmediaPop = false;
+      //  已经添加的流媒体列表
+      // 地区数据
+      this.InitstreamData = [];
+      
+    },
+  },
+  //
+  beforeDestroy() {
+    this.$store.commit("changtree", []);
+  },
+  updated() {
+    var addmodHei = $("#MonitorPageAddModel .el-dialog").height();
+    $("#MonitorPageAddModel .el-dialog").css("marginTop", -(addmodHei / 2));
+    $("#MonitorPageAddModel .el-dialog").css("marginBottom", 0);
+    var addmodHei1 = $("#MonitorPageEditModel .el-dialog").height();
+    $("#MonitorPageEditModel .el-dialog").css("marginTop", -(addmodHei1 / 2));
+    $("#MonitorPageEditModel .el-dialog").css("marginBottom", 0);
+    var addmodHei2 = $("#MonitorPagebox .el-dialog").height();
+    $("#MonitorPagebox .el-dialog").css("marginTop", -(addmodHei2 / 2));
+    $("#MonitorPagebox .el-dialog").css("marginBottom", 0);
+    // $('.streamServereft li')
+    $(".streamServereft li").click(function() {
+      $(".streamServereft li").css("background", "");
+      $(this).css("background", "#57e29b");
+    });
+    /* 计算高度 */
+    var addmodHei3 = $("#MonitorPageEditStream .el-dialog").height();
+    $("#MonitorPageEditStream .el-dialog").css("marginTop", -(addmodHei2 / 2));
+  }
+};
+import Tools from "../media/Tools.js";
+</script>
+<style scoped>
+
+
+
+#stMediaidform .userBtn2{
+  margin-top: 20px;
+  overflow: hidden;
+}
+#stMediaid{
+  overflow: hidden;
+}
+#stMediaid .leftTree{
+  float: left;
+  width: 20%;
+  height: 400px;
+  overflow-y: auto;
+}
+#stMediaid .rightList{
+  float: left;
+  width: 80%;
+}
+#streamTableinp{
+  text-align: center;
+}
+#stMediaid .rightList .tit{
+  text-align: center;
+}
+#stMediaid .rightList .cont{
+    font-size: 12px;
+}
+#stMediaid  .btnSpan{
+  cursor: pointer;
+}
+#stMediaid .tableInp{
+    -webkit-appearance: none;
+    background-color: #2a3558;
+    background-image: none;
+    /* border-radius: 4px; */
+    /* border: 1px solid #3b4872; */
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    color: #eee;
+    display: inline-block;
+    font-size: inherit;
+    outline: 0;
+    padding: 0 15px;
+    -webkit-transition: border-color .2s cubic-bezier(.645, .045, .355, 1);
+    transition: border-color .2s cubic-bezier(.645, .045, .355, 1);
+    width: 100%;
+}
+
+
+</style>
+<style scoped>
+.filegroup {
+  height: 30px;
+  overflow: hidden;
+  position: relative;
+  padding-top: 8px;
+  text-align: left;
+}
+
+#file {
+  float: left;
+  width: 260px;
+  color: #fff;
+  height: 30px;
+  border: none;
+  line-height: 30px;
+  margin-left: 100px;
+  background: none;
+}
+
+.btn3 {
+  float: left;
+  color: #fff;
+  width: 90px;
+  height: 30px;
+  background: #4a567c;
+  border-radius: 3px;
+  position: absolute;
+  z-index: 19;
+  line-height: 30px;
+  text-align: center;
+}
+
+#MonitorPageAddModel #files {
+  width: 90px;
+  height: 30px;
+  position: absolute;
+  opacity: 0;
+  z-index: 20;
+  top: 8px;
+}
+
+#MonitorPageEditModel #files,
+#MonitorPagebox #files {
+  width: 90px;
+  height: 30px;
+  position: absolute;
+  opacity: 0;
+  z-index: 20;
+  top: 8px;
+}
+
+.sccess {
+  color: #fff;
+  float: left;
+  width: 16px;
+  height: 16px;
+  display: none;
+  overflow: hidden;
+  line-height: 16px;
+  background: #61cd97;
+  border-radius: 50%;
+  margin-top: 7px;
+  text-align: center;
+}
+
+.scrollbox {
+  width: 1564px;
+}
+#MonitorPage .zTable .elTable .list_Time {
+  width: 150px;
+}
+.upload {
+  clear: both;
+  width: 100%;
+  overflow: hidden;
+}
+
+.uploadBg {
+  width: 96%;
+  height: 44px;
+  margin: 2px 0;
+  text-align: left;
+  line-height: 44px;
+  padding-left: 10px;
+  background: #2a3558;
+  border: 1px #3b4872 solid;
+}
+
+@media screen and (max-width: 1440px) {
+  .scrollbox {
+    width: 1156px;
+  }
+}
+
+@media screen and (max-width: 1366px) {
+  .scrollbox {
+    width: 1090px;
+  }
+
+  #MonitorPage .zTable {
+    padding-top: 0;
+  }
+
+  #MonitorPage .elTable {
+    height: 86%;
+  }
+}
+
+/* 弹出层 */
+
+.formTable {
+  overflow: hidden;
+  padding: 2px 4px;
+  background: #4a567c;
+}
+
+.block {
+  float: left;
+  width: 50%;
+  height: 40px;
+  overflow: hidden;
+  /* border:2px #4a567c solid; */
+}
+.block100 {
+  float: left;
+  width: 100%;
+  height: 40px;
+  overflow: hidden;
+  /* border:2px #4a567c solid; */
+}
+#MonitorPagebox .block img {
+  width: 20px;
+  height: 20px;
+  margin: 0 auto;
+  position: absolute;
+  top: 30%;
+}
+#MonitorPagebox .block {
+  position: relative;
+}
+#MonitorPagebox .block .tooltipbutton {
+  display: inline-block;
+  line-height: 0;
+  white-space: nowrap;
+  cursor: pointer;
+  color: #333;
+  -webkit-appearance: none;
+  text-align: center;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  outline: 0;
+  margin: 0;
+
+  padding: 0px 0px;
+  width: 50px;
+}
+.block .formbox {
+  height: 36px;
+  margin: 2px 0;
+  line-height: 36px;
+  border: 1px #3b4872 solid;
+}
+
+.block .blockleft {
+  margin-left: 30%;
+}
+/*  使用足够大的纯色阴影来覆盖input输入框黄色背景颜色 */
+/*  根据自己的输入框边框设置 =  */
+.passwordinput input {
+  -webkit-box-shadow: 0 0 0px 1000px white inset;
+  border: 1 px solid #666 !important;
+  -webkit-box-shadow: 0 0 0 px 1000 px white inset;
+}
+
+.infoMsg {
+  float: left;
+  line-height: 36px;
+  padding-left: 9px;
+}
+
+.checkboxBg {
+  width: 96%;
+  height: 34px;
+  margin: 2px 0;
+  line-height: 34px;
+  padding-left: 10px;
+  background: #2a3558;
+  border: 1px #3b4872 solid;
+}
+
+.textarea {
+  clear: both;
+  height: 120px;
+  overflow: hidden;
+}
+
+.textarealist {
+  height: 36px;
+}
+
+.textarealist1 {
+  height: 36px;
+  margin-top: 2px;
+}
+
+.userBtn2 {
+  overflow: hidden;
+  text-align: right;
+}
+
+.userBtn2 p {
+  height: 20px;
+  font-size: 14px;
+  line-height: 20px;
+  text-align: left;
+  padding: 10px 0 4px;
+}
+
+.userBtn2 p span {
+  color: red;
+}
+
+/* end */
+
+.paddingLeft {
+  padding-left: 20px;
+}
+
+input.el-input__inner:hover {
+  border: 1px #3b4872 solid;
+}
+
+.mRightTwo {
+  padding: 34px 42px;
+  margin: 15px 27px 15px 15px;
+  background: #354166;
+  box-shadow: 0px 0px 26px #01060e;
+}
+
+.zForm span {
+  float: left;
+  color: #eee;
+  display: block;
+  font-size: 14px;
+  overflow: hidden;
+  line-height: 36px;
+}
+
+.zTable {
+  clear: both;
+  height: 94%;
+  overflow: hidden;
+  /* overflow-x: auto; */
+  padding-top: 26px;
+}
+
+.elTable {
+  height: 91.7%;
+  overflow: hidden;
+  overflow-x: auto;
+}
+
+.zInput {
+  float: left;
+  width: 120px;
+  height: 36px;
+  font-size: 14px;
+  margin-left: 3px;
+  line-height: 36px;
+  padding-left: 14px;
+  margin-right: 20px;
+  background: #2a3558;
+  border: 1px #3b4872 solid;
+}
+
+.zForm button {
+  float: left;
+  color: #eee;
+  height: 38px;
+  font-size: 14px;
+  margin-left: 11px;
+  text-align: center;
+  line-height: 38px;
+  padding: 0px 15px;
+  background: #1b274c;
+  border: 1px #3b4872 solid;
+}
+
+.zSelect {
+  float: left;
+  width: 148px;
+}
+
+.zForm span.btnRight {
+  float: right;
+  display: inline-block;
+}
+</style>
+<style type="text/css"  lang="scss">
+#MonitorPageEditStream .el-input--mini .el-input__inner{
+ text-align: center;
+}
+.el-tooltip__popper.is-dark {
+  // width: 100%;
+  background: #303133;
+  color: #fff;
+}
+
+#MonitorPagebox .butclick {
+  padding: 0px 10px;
+  background: #1b274c;
+  border: 1px #3b4872 solid;
+  margin-left: 100px;
+}
+element.style {
+  display: block;
+}
+
+#MonitorPage #showtreebox {
+  /*display: none;*/
+  top: 116px;
+  left: 19%;
+  position: absolute;
+  width: 290px;
+  height: 175px;
+  z-index: 99;
+  background-color: #354166;
+  border: 2px #3b4872 solid;
+}
+
+#MonitorPage #showtreebox .closedbut {
+  position: absolute;
+  bottom: 0;
+  right: 20px;
+  width: 50px;
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 10px;
+  background: #1b274c;
+  border: 1px solid #3b4872;
+  text-align: center;
+  z-index: 999;
+  cursor: pointer;
+}
+
+input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0px 1000px #ffffff inset;
+  border: 1px solid #ffffff !important;
+  background-color: #ffffff;
+}
+
+#MonitorPageAddModel .submit2 {
+  float: left;
+  color: #fff;
+  width: 80px;
+  height: 30px;
+  background: #4a567c;
+  border-radius: 3px;
+  position: absolute;
+  z-index: 19;
+  line-height: 30px;
+  text-align: center;
+  margin-top: 0px;
+}
+
+#MonitorPageEditModel .submit2,
+#MonitorPagebox .submit2 {
+  float: left;
+  color: #fff;
+  width: 80px;
+  height: 30px;
+  background: #4a567c;
+  border-radius: 3px;
+  position: absolute;
+  z-index: 19;
+  line-height: 30px;
+  text-align: center;
+  margin-top: 0px;
+}
+
+.upload .uploadBg #uploadForm {
+  width: 45%;
+  margin-top: 0;
+}
+
+@import url("../media/lkjmedia.css");
+.streamServereft li {
+  margin-top: 4px;
+  font-size: 14px;
+  text-indent: 16px;
+}
+
+.streamServereft li:hover {
+  /*background-color: #409EFF;*/
+  background: #57e29b;
+  color: #fff;
+}
+
+.streamServereft li:focus {
+  background-color: #57e29b;
+  /* background: #57e29b; */
+  color: #fff;
+}
+
+.TerminaRight .el-input .el-input__inner {
+  height: 28px;
+  width: 200px;
+}
+
+.streamServereft,
+.TerminaRight {
+  background-color: #1b274c;
+  width: 200px;
+  float: left;
+  height: 340px;
+  overflow-y: auto;
+}
+
+.TerminaRight {
+  width: 410px;
+  border-left: 2px #4a567c solid;
+}
+
+#TerminaInformationPopup .el-dialog {
+  width: 660px;
+  height: 500px;
+  /*top: 50%;*/
+}
+
+#MonitorPageAddModel .el-dialog {
+  width: 1100px;
+  top: 40%;
+}
+
+#MonitorPageAddModel .el-dialog__body {
+  padding: 24px 24px 18px;
+}
+
+#MonitorPageAddModel .el-checkbox {
+  float: left;
+}
+
+#MonitorPageEditModel .el-dialog {
+  width: 1100px;
+  top: 40%;
+}
+#MonitorPagebox .el-dialog {
+  width: 1100px;
+  top: 40%;
+}
+#MonitorPageEditModel .el-dialog__body {
+  padding: 24px 24px 18px;
+}
+
+#MonitorPageEditModel .el-checkbox {
+  float: left;
+}
+#MonitorPagebox .el-dialog__body {
+  padding: 24px 24px 18px;
+}
+
+#MonitorPagebox .el-checkbox {
+  float: left;
+}
+.textarealist .el-form-item__label,
+.textarealist .el-input__inner,
+.textarealist1 .el-form-item__label,
+.textarealist1 .el-input__inner,
+.textarea .el-input__inner,
+.block .el-form-item__label,
+.block .el-input__inner,
+.textarea .el-form-item__label,
+.upload .el-input__inner {
+  height: 36px;
+  margin: 2px 0;
+  line-height: 36px;
+  border: 1px #3b4872 solid;
+}
+
+.upload .el-form-item__label {
+  width: 18.2% !important;
+  height: 46px;
+  margin: 2px 0;
+  line-height: 46px;
+  /* background: #2a3558; */
+  border: 1px #3b4872 solid;
+}
+
+.upload .el-form-item__content {
+  width: 84%;
+  margin-left: 18.2% !important;
+}
+
+#MonitorPageAddModel .block .el-form-item__label {
+  background: #1b274c;
+}
+
+#MonitorPageAddModel .el-dialog .textarea .el-form-item__label {
+  height: 120px;
+  background: #1b274c;
+}
+
+#MonitorPageAddModel .upload .el-form-item {
+  width: 95.5%;
+}
+
+#MonitorPageAddModel .el-form-item {
+  margin: 0;
+  padding: 0;
+  width: 91%;
+  float: left;
+}
+
+#MonitorPageAddModel .userBtn2 .el-form-item {
+  width: 100%;
+}
+
+#MonitorPageAddModel .el-textarea {
+  width: 106.2%;
+}
+
+/*lkj7-4*/
+#MonitorPageEditModel .block .el-form-item__label {
+  background: #1b274c;
+}
+
+#MonitorPageEditModel .el-dialog .textarea .el-form-item__label {
+  height: 120px;
+  background: #1b274c;
+}
+
+#MonitorPageEditModel .upload .el-form-item {
+  width: 95.5%;
+}
+
+#MonitorPageEditModel .el-form-item {
+  margin: 0;
+  padding: 0;
+  width: 91%;
+  float: left;
+}
+
+#MonitorPageEditModel .userBtn2 .el-form-item {
+  width: 100%;
+}
+
+#MonitorPageEditModel .el-textarea {
+  width: 106.2%;
+}
+/*lkj7-4*/
+#MonitorPagebox .block .el-form-item__label {
+  background: #1b274c;
+}
+
+#MonitorPagebox .el-dialog .textarea .el-form-item__label {
+  height: 120px;
+  background: #1b274c;
+}
+
+#MonitorPagebox .upload .el-form-item {
+  width: 95.5%;
+}
+
+#MonitorPagebox .el-form-item {
+  margin: 0;
+  padding: 0;
+  width: 91%;
+  float: left;
+}
+
+#MonitorPagebox .userBtn2 .el-form-item {
+  width: 100%;
+}
+
+#MonitorPagebox .el-textarea {
+  width: 106.2%;
+}
+
+.textarea .el-textarea__inner {
+  height: 120px;
+  margin: 2px 0;
+  line-height: 22px;
+  background: #2a3558;
+  border: 1px #3b4872 solid;
+  border-radius: 0;
+}
+
+.el-date-editor.el-input {
+  width: 100%;
+}
+
+.el-select {
+  width: 100%;
+}
+
+.el-textarea {
+  float: left;
+  width: 92.2%;
+}
+
+.el-dialog__header span {
+  padding-left: 38px;
+  height: 38px;
+  display: inline-block;
+  background: url(../../assets/modeIco.png) no-repeat;
+}
+
+::-webkit-scrollbar {
+  width: 12px;
+  /*滚动条宽度*/
+  height: 12px;
+  /*滚动条高度*/
+}
+
+::-webkit-scrollbar-track {
+  border-radius: 5px;
+  /*滚动条的背景区域的圆角*/
+  background-color: #222d50;
+  /*滚动条的背景颜色*/
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 5px;
+  /*滚动条的圆角*/
+  background-color: #4f5c84;
+  /*滚动条的背景颜色*/
+}
+
+#MonitorPage .el-progress {
+  float: left;
+  margin: 8px 0 0 102px;
+  width: 257px;
+}
+
+#MonitorPage .el-progress-bar__outer {
+  height: 10px !important;
+}
+</style>

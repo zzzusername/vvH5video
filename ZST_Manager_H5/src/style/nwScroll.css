@@ -1,0 +1,133 @@
+﻿
+.sc_cn {
+    position: relative;
+    overflow: hidden;
+    outline:none;
+}
+
+.sc_m {
+    display: inline-block;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+}
+
+.sc_r {
+    position: absolute;
+    top: 3%;
+    right: 0px;
+    width: 16px;
+    height: 94%;
+}
+
+.sc_b {
+    position: absolute;
+    bottom: 0px;
+    height: 16px;
+}
+
+.sc_r_t {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    height: 20px;
+    width: 100%;
+    cursor: pointer;
+    text-align: center;
+    font-size: 16px;
+    color: #fff;
+    line-height: 21px;
+    text-indent: 1px;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.sc_r_c {
+    position: absolute;
+    top: 20px;
+    left: 40%;
+    width: 6px;
+    background-color: #c1bfbf;
+    border-radius: 8px;
+}
+
+.sc_r_b {
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+    height: 20px;
+    width: 100%;
+    cursor: pointer;
+    text-align: center;
+    font-size: 16px;
+    color: #fff;
+    line-height: 16px;
+    text-indent: 1px;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.sc_r_c_bar {
+    position: absolute;
+    top: 0%;
+    left: 0px;
+    width: 100%;
+    background-color: #00BCD4;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.sc_b_l {
+    position: absolute;
+    left: 0px;
+    width: 20px;
+    height: 100%;
+    cursor: pointer;
+    text-align: center;
+    font-size: 16px;
+    color: #fff;
+    line-height: 14px;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.sc_b_c {
+    position: absolute;
+    left: 20px;
+    bottom: 30%;
+    height: 6px;
+    background-color: #c1bfbf;
+    border-radius: 8px;
+}
+
+.sc_b_r {
+    position: absolute;
+    right: 0px;
+    width: 20px;
+    height: 100%;
+    cursor: pointer;
+    text-align: center;
+    font-size: 16px;
+    color: #fff;
+    line-height: 14px;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.sc_b_c_bar {
+    position: absolute;
+    left: 0%;
+    height: 100%;
+    background-color: #00BCD4;
+    border-radius: 8px;
+    overflow:hidden;
+    cursor: pointer;
+}

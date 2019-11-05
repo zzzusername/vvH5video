@@ -1,0 +1,275 @@
+import Vue from 'vue'
+import Router from 'vue-router'
+import Login from '@/components/Login'
+import error from '@/components/404'
+import Index from '@/components/Index'
+import HomeView from '@/components/operations/Home'
+import Managementview from '@/components/app/Management'
+import Upgradeview from '@/components/app/Upgrade'
+import AdministratorsListView from '@/components/administrators/AdministratorsList'
+import treeview from '@/components/root/MonitorTree'
+import ServerStatusDetailView from '@/components/operations/ServerStatusDetail'
+import terminalView from '@/components/operations/terminal'
+import MonitorView from '@/components/operations/Monitor'
+import streamServerView from '@/components/operations/streamServer'
+import Forgetpassword from '@/components/Forgetpassword'
+import Dynamicvideo from '@/components/Dynamicvideo'
+//  Indexapp
+import Indexapp from '@/page/guide/indexapp'
+
+//  Indexmain
+import Indexmain from '@/page/maincont/indexmain'
+
+import Dynamicplay from '@/components/Dynamicvideo'
+
+Vue.use(Router)
+
+
+export default new Router({
+	// mode: 'history',
+
+	// base:'/VueTest',
+	routes: [
+		{
+			name: '',
+			path: '',
+			component: Login
+		},
+		{
+			name: 'Forgetpassword',
+			path: '/Forgetpassword',
+			component: Forgetpassword
+		},
+		{
+			name: 'Dynamicvideo',
+			path: '/Dynamicvideo',
+			component: Dynamicplay
+		},
+		{
+			name: 'Home',
+			path: '/Home',
+			component: Index,
+			children: [{
+					name: '',
+					path: '',
+					component: HomeView,
+				}, {
+					name: 'ServerStatusDetail',
+					path: 'ServerStatusDetail',
+					component: ServerStatusDetailView,
+    
+				},
+				{
+					name: 'terminal',
+					path: 'terminal',
+					component: terminalView,
+    
+				},
+				{
+					name: 'Management',
+					path: 'Management',
+					component: Managementview
+				},
+				{
+					name: 'Monitor',
+					path: 'Monitor',
+					component: MonitorView
+				},
+				{
+					name: 'streamServer',
+					path: 'streamServer',
+					component: streamServerView
+				},
+				{
+					name: 'Upgrade',
+					path: 'Upgrade',
+					component: Upgradeview
+				},
+							{
+							name: 'streamingmedia',
+							path: 'streamingmedia',
+							component: resolve => (require(["@/components/operations/streamingmedia"],resolve))
+							},
+							{
+							name: 'SKDplatform',
+							path: 'SKDplatform',
+							component: resolve => (require(["@/components/operations/SKDplatform"],resolve))
+							},
+							{
+							name: 'APPModule',
+							path: 'APPModule',
+							component: resolve => (require(["@/components/app/APPModule"],resolve))
+							},
+							{
+							name: 'AdministratorLog',
+							path: 'AdministratorLog',
+							component: resolve => (require(["@/components/log/administratorlog"], resolve))
+							},
+							{
+							name: 'Feedback',
+							path: 'Feedback',
+							component: resolve => (require(["@/components/app/Feedback"],resolve))
+							},
+						{
+						name: 'AdministratorsList',
+						path: 'AdministratorsList',
+						component: AdministratorsListView
+						},
+							{
+							name: 'tree',
+							path: 'tree',
+							component: treeview
+							},
+
+
+			]
+		},
+
+		// 使用向导路由配置
+		{
+			name: 'Homeapp',
+			path: '/Homeapp',
+			component: Indexapp,
+			children: [
+				{
+					name: '',
+					path: '',
+					component: resolve => (require(["@/page/guide/homeapp"], resolve))
+				}
+
+			]
+		},
+		// 主要内容展示
+		{
+			name: 'Homemain',
+			path: '/Homemain',
+			component: Indexmain,
+			children: [
+				{
+					name: '',
+					path: '',
+					component: resolve => (require(["@/page/maincont/company/index"], resolve))
+				},
+				{
+					name: 'company',
+					path: 'company',
+					component: resolve => (require(["@/page/maincont/company/index"], resolve))
+				},
+				{
+					name: 'child',
+					path: 'child',
+					component: resolve => (require(["@/page/maincont/company/childlist-copy"], resolve))
+				},
+				{
+					name: 'units',
+					path: 'units',
+					component: resolve => (require(["@/page/maincont/company/unitslist"], resolve))
+				},
+				{
+					name: 'duty',
+					path: 'duty',
+					component: resolve => (require(["@/page/maincont/company/dutylist"], resolve))
+				},
+				/* 用户管理 */
+				{
+					name: 'usercheck',
+					path: 'usercheck',
+					component: resolve => (require(["@/page/maincont/user/usercheck"], resolve))
+				},
+				{
+					name: 'userlist',
+					path: 'userlist',
+					component: resolve => (require(["@/page/maincont/user/userlist"], resolve))
+				},
+				{
+					name: 'authoritylist',
+					path: 'authoritylist',
+					component: resolve => (require(["@/page/maincont/user/authority"], resolve))
+				},
+				/* APP 管理路由 */
+				{
+					name: 'setapp',
+					path: 'setapp',
+					component: resolve => (require(["@/page/maincont/management/setapp"], resolve))
+				},
+				{
+					name: 'slideshowlist',
+					path: 'slideshowlist',
+					component: resolve => (require(["@/page/maincont/management/slideshowlist"], resolve))
+				},
+				{
+					name: 'appmodules',
+					path: 'appmodules',
+					component: resolve => (require(["@/page/maincont/management/appmodules"], resolve))
+				},
+				{
+					name: 'setlogin',
+					path: 'setlogin',
+					component: resolve => (require(["@/page/maincont/management/setlogin"], resolve))
+				},
+				{
+					name: 'policesort',
+					path: 'policesort',
+					component: resolve => (require(["@/page/maincont/management/policesort"], resolve))
+				},
+				{
+					name: 'videoSharingcircle',
+					path: 'videoSharingcircle',
+					component: resolve => (require(["@/page/maincont/management/videoSharingcircle"], resolve))
+				},
+				/* 视频管理  liveslist meetinglist */
+				{
+					name: 'liveslist',
+					path: 'liveslist',
+					component: resolve => (require(["@/page/maincont/video/liveslist"], resolve))
+				},
+				{
+					name: 'meetinglist',
+					path: 'meetinglist',
+					component: resolve => (require(["@/page/maincont/video/meetinglist"], resolve))
+				},
+				/* 资源管理  */
+				{
+					name: 'gisplatform',
+					path: 'gisplatform',
+					component: resolve => (require(["@/page/maincont/resource/gisplatform"], resolve))
+				},
+				{
+					name: 'resourcelist',
+					path: 'resourcelist',
+					component: resolve => (require(["@/page/maincont/resource/resourcelist"], resolve))
+				},
+				{
+					name: 'addresslist',
+					path: 'addresslist',
+					component: resolve => (require(["@/page/maincont/resource/addresslist"], resolve))
+				},
+				/* 日志管理 */
+				{
+					name: 'system',
+					path: 'system',
+					component: resolve => (require(["@/page/maincont/log/system"], resolve))
+				},
+				{
+					name: 'userlog',
+					path: 'userlog',
+					component: resolve => (require(["@/page/maincont/log/userlog"], resolve))
+				},
+
+			]
+		},
+		{
+			path: '/notFound',//404,地址不存在
+			component: error,
+			meta: {title: '404,地址不存在'}
+		},
+		/* {
+			path: '*',// 路由重定向
+			redirect: {path: '/notFound'}
+		} */
+	],
+
+
+})
+
+
